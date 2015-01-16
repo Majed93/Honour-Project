@@ -235,7 +235,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		}
 
 		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-		glClearColor(0.8f, 0.6f, 0.6f, 1.0f);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glfwSetWindowTitle(window, title);
 		ImGui::Render();

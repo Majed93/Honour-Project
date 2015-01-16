@@ -24,12 +24,15 @@ Majed Monem
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
+#include "object_ldr.h"
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
 
-GLuint positionBufferObject, colourObject;
+
+//GLuint positionBufferObject, colourObject;
 GLuint program[2];
 GLuint vao, current;
 
@@ -47,17 +50,18 @@ GLfloat z, z_inc;
 GLfloat scale, scale_inc;
 
 /* Uniforms*/
-GLuint modelID;
-GLuint viewID;
-GLuint projectionID;
+GLuint modelID, viewID, projectionID, lightposID, normalmatrixID;
+
 GLfloat aspect_ratio;		/* Aspect ratio of the window defined in the reshape callback*/
 
-GLWrapper *glw = new GLWrapper(800, 500, "Graphical Enigma Simutlator - Main Menu");
+static GLWrapper *glw = new GLWrapper(800, 500, "Graphical Enigma Simutlator - Main Menu");
 
 static GLFWwindow* window;
 static GLuint fontTex;
 static bool mousePressed[2] = { false, false };
 
+//Variables for components
+object_ldr plate_contacts;
 // Shader variables
 static int texture_location, ortho_location;
 static int position_location, uv_location, colour_location;
@@ -65,7 +69,8 @@ static size_t vbo_max_size = 20000;
 static unsigned int vbo_handle, vao_handle;
 
 void display();
-
+void drawObjects();
+void createObjects();
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - try adjusting ImGui::GetIO().PixelCenterOffset to 0.0f or 0.5f
@@ -159,75 +164,60 @@ void display() {
 
 	glEnable(GL_DEPTH_TEST);
 	/* Define the background colour */
-	glClearColor(0.2f, 0.6f, 0.6f, 1.0f);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 	/* Clear the colour and frame buffers */
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(program[1]);
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
-	glEnableVertexAttribArray(0);
+	//glBindVertexArray(vao);
+	//glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
+	//glEnableVertexAttribArray(0);
 
-	/* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
-	index relates to the layout qualifier in the vertex shader and in
-	glEnableVertexAttribArray() and glDisableVertexAttribArray() */
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	///* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
+	//index relates to the layout qualifier in the vertex shader and in
+	//glEnableVertexAttribArray() and glDisableVertexAttribArray() */
+	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, colourObject);
-	glEnableVertexAttribArray(1);
+	//glBindBuffer(GL_ARRAY_BUFFER, colourObject);
+	//glEnableVertexAttribArray(1);
 
-	/* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
-	index relates to the layout qualifier in the vertex shader and in
-	glEnableVertexAttribArray() and glDisableVertexAttribArray() */
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	///* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
+	//index relates to the layout qualifier in the vertex shader and in
+	//glEnableVertexAttribArray() and glDisableVertexAttribArray() */
+	//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 
 	// Model matrix : an identity matrix (model will be at the origin)
 	glm::mat4 model = glm::mat4(1.0f);
 
 	model = glm::rotate(model, -angle_x, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
-
 	model = glm::rotate(model, -angle_z, glm::vec3(0, 0, 1)); //rotate z axis
-
 	model = glm::rotate(model, -angle_y, glm::vec3(0, 1, 0)); //rotate y axis
-
 	model = glm::translate(model, glm::vec3(x, y, z));
-
 	model = glm::scale(model, glm::vec3(scale, scale, scale));
+	
 	// Send our transformations to the currently bound shader,
-	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
-
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-	model = glm::mat4(1.0f);
-
-	model = glm::rotate(model, -angle_x, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
-
-	model = glm::rotate(model, -angle_z, glm::vec3(0, 0, 1)); //rotate z axis
-
-	model = glm::rotate(model, -angle_y, glm::vec3(0, 1, 0)); //rotate y axis
-
-	model = glm::translate(model, glm::vec3(-x, -y, -z));
-
-	model = glm::scale(model, glm::vec3(scale, scale, scale));
 
 	glm::mat4 projection = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
 
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(0, 0, 1),
+		glm::vec3(0, 0, 4),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0, 1, 0)
 		);
 
+	glm::mat3 normalmatrix = glm::transpose(glm::inverse(glm::mat3(view * model)));
+	glm::vec4 lightpos = view *  glm::vec4(0.25, 0.25, 1, 1.0);
+
 	// Send our transformations to the currently bound shader,
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
-
 	glUniformMatrix4fv(viewID, 1, GL_FALSE, &view[0][0]);
-
 	glUniformMatrix4fv(projectionID, 1, GL_FALSE, &projection[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glUniformMatrix3fv(normalmatrixID, 1, GL_FALSE, &normalmatrix[0][0]);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
+	drawObjects();
 
 	glDisableVertexAttribArray(0);
 	glUseProgram(0);
@@ -271,23 +261,23 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 	if (k == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-	//if (k == 'Q') angle_x_inc += 0.1f;
-	//if (k == 'W') angle_x_inc -= 0.1f;
-	//if (k == 'A') angle_z_inc += 0.1f;
-	//if (k == 'S') angle_z_inc -= 0.1f;
-	//if (k == 'Z') angle_y_inc += 0.1f;
-	//if (k == 'X') angle_y_inc -= 0.1f;
+	if (k == 'Q') angle_x_inc += 0.1f;
+	if (k == 'W') angle_x_inc -= 0.1f;
+	if (k == 'A') angle_z_inc += 0.1f;
+	if (k == 'S') angle_z_inc -= 0.1f;
+	if (k == 'Z') angle_y_inc += 0.1f;
+	if (k == 'X') angle_y_inc -= 0.1f;
 
-	//if (k == GLFW_KEY_UP) y_inc += 0.0001f;
+	if (k == GLFW_KEY_UP) y_inc += 0.0001f;
 
-	//if (k == GLFW_KEY_DOWN) y_inc -= 0.0001f;
+	if (k == GLFW_KEY_DOWN) y_inc -= 0.0001f;
 
-	//if (k == GLFW_KEY_LEFT) x_inc += 0.0001f;
+	if (k == GLFW_KEY_LEFT) x_inc += 0.0001f;
 
-	//if (k == GLFW_KEY_RIGHT) x_inc -= 0.0001f;
+	if (k == GLFW_KEY_RIGHT) x_inc -= 0.0001f;
 
-	//if (k == 'I') scale_inc += 0.0001f;
-	//if (k == 'K') scale_inc -= 0.0001f;
+	if (k == 'I') scale_inc += 0.0001f;
+	if (k == 'K') scale_inc -= 0.0001f;
 
 	ImGuiIO& io = ImGui::GetIO();
 	if (action == GLFW_PRESS)
@@ -324,6 +314,19 @@ static void glfw_error_callback(int error, const char* description)
 	fputs(description, stderr);
 }
 
+//Initialize objects
+void createObjects()
+{
+	plate_contacts.load_obj("objects/spring-loaded_level.obj");
+	//plate_contacts.smoothNormals(); //Might not need this
+	plate_contacts.createObject();
+}
+
+//Draw all the components
+void drawObjects()
+{
+	plate_contacts.drawObject();
+}
 void init(GLWrapper *glw)
 {
 	angle_x = 0;
@@ -353,124 +356,18 @@ void init(GLWrapper *glw)
 	// Create the vertex array object and make it current
 	glBindVertexArray(vao);
 
-	/* Define vertices for a cube in 12 triangles */
-	GLfloat vertexPositions[] =
-	{
-		-0.25f, 0.25f, -0.25f, 1.f,
-		-0.25f, -0.25f, -0.25f, 1.f,
-		0.25f, -0.25f, -0.25f, 1.f,
-
-		0.25f, -0.25f, -0.25f, 1.f,
-		0.25f, 0.25f, -0.25f, 1.f,
-		-0.25f, 0.25f, -0.25f, 1.f,
-
-		0.25f, -0.25f, -0.25f, 1.f,
-		0.25f, -0.25f, 0.25f, 1.f,
-		0.25f, 0.25f, -0.25f, 1.f,
-
-		0.25f, -0.25f, 0.25f, 1.f,
-		0.25f, 0.25f, 0.25f, 1.f,
-		0.25f, 0.25f, -0.25f, 1.f,
-
-		0.25f, -0.25f, 0.25f, 1.f,
-		-0.25f, -0.25f, 0.25f, 1.f,
-		0.25f, 0.25f, 0.25f, 1.f,
-
-		-0.25f, -0.25f, 0.25f, 1.f,
-		-0.25f, 0.25f, 0.25f, 1.f,
-		0.25f, 0.25f, 0.25f, 1.f,
-
-		-0.25f, -0.25f, 0.25f, 1.f,
-		-0.25f, -0.25f, -0.25f, 1.f,
-		-0.25f, 0.25f, 0.25f, 1.f,
-
-		-0.25f, -0.25f, -0.25f, 1.f,
-		-0.25f, 0.25f, -0.25f, 1.f,
-		-0.25f, 0.25f, 0.25f, 1.f,
-
-		-0.25f, -0.25f, 0.25f, 1.f,
-		0.25f, -0.25f, 0.25f, 1.f,
-		0.25f, -0.25f, -0.25f, 1.f,
-
-		0.25f, -0.25f, -0.25f, 1.f,
-		-0.25f, -0.25f, -0.25f, 1.f,
-		-0.25f, -0.25f, 0.25f, 1.f,
-
-		-0.25f, 0.25f, -0.25f, 1.f,
-		0.25f, 0.25f, -0.25f, 1.f,
-		0.25f, 0.25f, 0.25f, 1.f,
-
-		0.25f, 0.25f, 0.25f, 1.f,
-		-0.25f, 0.25f, 0.25f, 1.f,
-		-0.25f, 0.25f, -0.25f, 1.f,
+	///* Create a vertex buffer object to store vertices */
+	//glGenBuffers(1, &positionBufferObject);
+	//glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
-	};
-
-
-	/* Define an array of colours */
-	float vertexColours[] = {
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-	};
-
-	// Generate index (name) for one vertex array object
-	glGenVertexArrays(1, &vao);
-	// Create the vertex array object and make it current
-	glBindVertexArray(vao);
-
-
-	/* Create a vertex buffer object to store vertices */
-	glGenBuffers(1, &positionBufferObject);
-	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-	/* Create a vertex buffer object to store vertex colours */
-	glGenBuffers(1, &colourObject);
-	glBindBuffer(GL_ARRAY_BUFFER, colourObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColours), vertexColours, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	///* Create a vertex buffer object to store vertex colours */
+	//glGenBuffers(1, &colourObject);
+	//glBindBuffer(GL_ARRAY_BUFFER, colourObject);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColours), vertexColours, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	try
 	{
@@ -507,10 +404,14 @@ void init(GLWrapper *glw)
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	createObjects();
+
 	/* Define uniforms to send to vertex shader */
 	modelID = glGetUniformLocation(program[1], "model");
 	viewID = glGetUniformLocation(program[1], "view");
 	projectionID = glGetUniformLocation(program[1], "projection");
+	lightposID = glGetUniformLocation(program[1], "lightpos");
+	normalmatrixID = glGetUniformLocation(program[1], "normalmatrix");
 }
 
 void InitImGui()
@@ -558,6 +459,7 @@ void InitImGui()
 //Main Application Code
 int main(int argc, char ** argv)
 {
+
 	glw->setKeyCallback(keyCallback);
 	glw->setReshapeCallback(reshape);
 	glw->setMouseButtonCallback(glfw_mouse_button_callback);

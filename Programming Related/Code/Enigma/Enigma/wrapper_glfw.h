@@ -3,6 +3,8 @@ wrapper_glfw.h
 Modified from the OpenGL GLFW example to provide a wrapper GLFW class
 Iain Martin August 2014
 */
+#pragma once
+
 #ifdef _MSC_VER
 #pragma warning (disable: 4996)         // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
 #endif
