@@ -51,7 +51,7 @@ GLfloat scale, scale_inc;
 
 /* Uniforms*/
 GLuint modelID, viewID, projectionID, lightposID, normalmatrixID;
-
+glm::mat4 model;
 GLfloat aspect_ratio;		/* Aspect ratio of the window defined in the reshape callback*/
 
 static GLWrapper *glw = new GLWrapper(800, 500, "Graphical Enigma Simutlator - Main Menu");
@@ -60,8 +60,19 @@ static GLFWwindow* window;
 static GLuint fontTex;
 static bool mousePressed[2] = { false, false };
 
+
 //Variables for components
+object_ldr notched_ring;
+object_ldr contact;
+object_ldr alphabet_tyre;
 object_ldr plate_contacts;
+object_ldr pin_contact;
+object_ldr spring_loaded_lever;
+object_ldr hub;
+object_ldr finger_wheel;
+object_ldr ratchet_wheel;
+object_ldr back_contact;
+
 // Shader variables
 static int texture_location, ortho_location;
 static int position_location, uv_location, colour_location;
@@ -70,7 +81,11 @@ static unsigned int vbo_handle, vao_handle;
 
 void display();
 void drawObjects();
+void drawPlates();
+void drawPins();
 void createObjects();
+
+
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - try adjusting ImGui::GetIO().PixelCenterOffset to 0.0f or 0.5f
@@ -189,11 +204,11 @@ void display() {
 
 
 	// Model matrix : an identity matrix (model will be at the origin)
-	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::mat4(1.0f);
 
-	model = glm::rotate(model, -angle_x, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
-	model = glm::rotate(model, -angle_z, glm::vec3(0, 0, 1)); //rotate z axis
-	model = glm::rotate(model, -angle_y, glm::vec3(0, 1, 0)); //rotate y axis
+	//model = glm::rotate(model, -angle_x, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
+	//model = glm::rotate(model, -angle_z, glm::vec3(0, 0, 1)); //rotate z axis
+	//model = glm::rotate(model, -angle_y, glm::vec3(0, 1, 0)); //rotate y axis
 	model = glm::translate(model, glm::vec3(x, y, z));
 	model = glm::scale(model, glm::vec3(scale, scale, scale));
 	
@@ -202,10 +217,16 @@ void display() {
 	glm::mat4 projection = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
 
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(0, 0, 4),
+		glm::vec3(0, 5, 8),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0, 1, 0)
 		);
+
+	//// Apply rotations to the view position
+	view = glm::rotate(view, -angle_x, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
+	view = glm::rotate(view, -angle_y, glm::vec3(0, 1, 0)); //rotating in clockwise direction around y-axis
+	view = glm::rotate(view, -angle_z, glm::vec3(0, 0, 1));
+
 
 	glm::mat3 normalmatrix = glm::transpose(glm::inverse(glm::mat3(view * model)));
 	glm::vec4 lightpos = view *  glm::vec4(0.25, 0.25, 1, 1.0);
@@ -276,6 +297,10 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 
 	if (k == GLFW_KEY_RIGHT) x_inc -= 0.0001f;
 
+	if (k == GLFW_KEY_M) z_inc += 0.0001f;
+
+	if (k == GLFW_KEY_N) z_inc -= 0.0001f;
+
 	if (k == 'I') scale_inc += 0.0001f;
 	if (k == 'K') scale_inc -= 0.0001f;
 
@@ -317,16 +342,118 @@ static void glfw_error_callback(int error, const char* description)
 //Initialize objects
 void createObjects()
 {
-	plate_contacts.load_obj("objects/spring-loaded_level.obj");
+	//Notched Ring
+	notched_ring.load_obj("objects/notched_ring.obj");
+	//notched_ring.smoothNormals(); //Might not need this
+	notched_ring.createObject();
+
+	//Contact
+	contact.load_obj("objects/contact.obj");
+	//contact.smoothNormals(); //Might not need this
+	contact.createObject();
+
+	//Alphabet Tyre
+	alphabet_tyre.load_obj("objects/alphabet_tyre.obj");
+	//alphabet_tyre.smoothNormals(); //Might not need this
+	alphabet_tyre.createObject();
+
+	//Plate contacts
+	plate_contacts.load_obj("objects/plate_contact.obj");
 	//plate_contacts.smoothNormals(); //Might not need this
 	plate_contacts.createObject();
+
+	//Pin contacts
+	pin_contact.load_obj("objects/pin_contact.obj");
+	//pin_contacts.smoothNormals(); //Might not need this
+	pin_contact.createObject();
+	
+	//Spring-loaded lever
+	spring_loaded_lever.load_obj("objects/spring-loaded_lever.obj");
+	//spring_loaded_lever.smoothNormals(); //Might not need this
+	spring_loaded_lever.createObject();
+
+	//Hub
+	hub.load_obj("objects/hub.obj");
+	//hub.smoothNormals(); //Might not need this
+	hub.createObject();
+
+	//Finger Wheel
+	finger_wheel.load_obj("objects/finger_wheel.obj");
+	//finger_wheel.smoothNormals(); //Might not need this
+	finger_wheel.createObject();
+
+	//Ratchet Wheel
+	ratchet_wheel.load_obj("objects/ratchet_wheel.obj");
+	//ratchet_wheel.smoothNormals(); //Might not need this
+	ratchet_wheel.createObject();
+
+	//Back contact
+	back_contact.load_obj("objects/back_contact.obj");
+	//back_contact.smoothNormals(); //Might not need this
+	back_contact.createObject();
+
 }
 
 //Draw all the components
 void drawObjects()
 {
-	plate_contacts.drawObject();
+	//Variables for components
+	/*notched_ring.drawObject();
+	contact.drawObject();
+	alphabet_tyre.drawObject();
+
+	drawPlates();
+*/
+	drawPins();
+
+	/*spring_loaded_lever.drawObject();
+	hub.drawObject();
+	finger_wheel.drawObject();
+	ratchet_wheel.drawObject();
+	back_contact.drawObject();*/
 }
+
+void drawPlates()
+{
+	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
+
+	float pi = 3.141592;
+	float slice = 2 * pi / 26;
+
+	for (int i = 0; i < 26; i++)
+	{
+		float angle = slice * i;
+		float newX = x + (1.55 / 4) * cos(angle);
+		float newZ = z + (1.55 / 4) * sin(angle);
+
+		model = glm::translate(model, glm::vec3(newX, y, newZ));
+		glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+
+		plate_contacts.drawObject();
+	}
+}
+
+void drawPins()
+{
+	model = glm::mat4(1.0f);
+	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
+
+	float pi = 3.141592;
+	float slice = 2 * pi / 26;
+
+	for (int i = 0; i < 26; i++)
+	{
+		float angle = slice * i;
+		float newX = x + (1.55 / 4) * cos(angle);
+		float newZ = z + (1.55 / 4) * sin(angle);
+
+		model = glm::translate(model, glm::vec3(newX, y, newZ));
+		glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+
+		pin_contact.drawObject();
+	}
+}
+
 void init(GLWrapper *glw)
 {
 	angle_x = 0;
@@ -335,7 +462,7 @@ void init(GLWrapper *glw)
 	angle_z = 0;
 	angle_z_inc = 0;
 
-	angle_y = 0;
+	angle_y = 60.0f;
 	angle_y_inc = 0;
 
 	x = 0;
