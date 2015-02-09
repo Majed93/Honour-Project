@@ -23,6 +23,7 @@ Majed Monem
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include "glm/gtc/random.hpp"
 
 #include "object_ldr.h"
 
@@ -35,12 +36,13 @@ Majed Monem
 //GLuint positionBufferObject, colourObject;
 GLuint program[2];
 GLuint vao, current;
+GLuint positionBufferObject, colourObject;
 
 /* Position and view globals */
 GLfloat angle_x, angle_x_inc;
 GLfloat angle_z, angle_z_inc;
 GLfloat angle_y, angle_y_inc;
-
+GLfloat lightx, lighty, lightz;
 GLfloat x, x_inc;
 
 GLfloat y, y_inc;
@@ -49,12 +51,29 @@ GLfloat z, z_inc;
 
 GLfloat scale, scale_inc;
 
+GLfloat platex[26], platez[26];
+
+GLfloat pinx[26], pinz[26];
+
+GLfloat pointx[26], pointz[26];
+
+float pi = 3.141592;
+float slice = 2 * pi / 26;
+int numpoints = 2;
+//float line_vertex[] = { 0.0f, -0.2f, 0.0f, 1.2f };
+//glm::vec3 *line_vertex;
+GLfloat* line_vertex;
+bool done = false;
+GLfloat vx, vy, vz;
 /* Uniforms*/
-GLuint modelID, viewID, projectionID, lightposID, normalmatrixID;
+GLuint modelID, viewID, projectionID, lightposID, normalmatrixID, componentID, color1ID, color2ID, color3ID;
 glm::mat4 model;
+GLuint comp;
+float color1[26], color2[26], color3[26];
+
 GLfloat aspect_ratio;		/* Aspect ratio of the window defined in the reshape callback*/
 
-static GLWrapper *glw = new GLWrapper(800, 500, "Graphical Enigma Simutlator - Main Menu");
+static GLWrapper *glw = new GLWrapper(800, 500, "Graphical Enigma Simulator - Main Menu");
 
 static GLFWwindow* window;
 static GLuint fontTex;
@@ -84,7 +103,10 @@ void drawObjects();
 void drawPlates();
 void drawPins();
 void createObjects();
-
+void createBuffers();
+void calculateXZ();
+float bezier(float A, float B, float C, float D, float t);
+int mapAlphabet(int number);
 
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
@@ -97,6 +119,10 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 
 	if (glw->mode == "En")
 	{
+		if (done == false)
+		{
+			createBuffers();
+		}
 		display();
 	}
 	// Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled
@@ -217,7 +243,7 @@ void display() {
 	glm::mat4 projection = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
 
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(0, 5, 8),
+		glm::vec3(vx, vy, vz),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0, 1, 0)
 		);
@@ -229,7 +255,7 @@ void display() {
 
 
 	glm::mat3 normalmatrix = glm::transpose(glm::inverse(glm::mat3(view * model)));
-	glm::vec4 lightpos = view *  glm::vec4(0.25, 0.25, 1, 1.0);
+	glm::vec4 lightpos = view *  glm::vec4(lightx, lighty, lightz, 1.0);
 
 	// Send our transformations to the currently bound shader,
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
@@ -282,7 +308,25 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 	if (k == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-	if (k == 'Q') angle_x_inc += 0.1f;
+	//64 and 90 are all alphabet values
+	if (k > 64 && k < 91 && action == GLFW_PRESS)
+	{
+		//std::cout << "letter code :" << k << std::endl;
+		glw->Encrypt((char)k);
+	}
+
+	//Spacebar
+	if (k == 32)
+	{
+
+	}
+
+	//Backspace
+	if (k == 259)
+	{
+
+	}
+	/*if (k == 'Q') angle_x_inc += 0.1f;
 	if (k == 'W') angle_x_inc -= 0.1f;
 	if (k == 'A') angle_z_inc += 0.1f;
 	if (k == 'S') angle_z_inc -= 0.1f;
@@ -303,7 +347,7 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 
 	if (k == 'I') scale_inc += 0.0001f;
 	if (k == 'K') scale_inc -= 0.0001f;
-
+*/
 	ImGuiIO& io = ImGui::GetIO();
 	if (action == GLFW_PRESS)
 		io.KeysDown[k] = true;
@@ -397,66 +441,434 @@ void createObjects()
 //Draw all the components
 void drawObjects()
 {
-	//Variables for components
-	/*notched_ring.drawObject();
+	////Variables for components
+	model = glm::mat4(1.0f);
+	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
+	model = glm::translate(model, glm::vec3(x, y +5.0f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 0;
+	glUniform1ui(componentID, comp);
+
+
+	notched_ring.drawObject();
+
+	//
+	model = glm::translate(model, glm::vec3(x, y - 0.4f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 1;
+	glUniform1ui(componentID, comp);
+
+	notched_ring.drawObject();
+
+	//
+	model = glm::translate(model, glm::vec3(x, y - 0.6f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 2;
+	glUniform1ui(componentID, comp);
+
 	contact.drawObject();
+
+	//
+	model = glm::translate(model, glm::vec3(x, y - 0.8f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 3;
+	glUniform1ui(componentID, comp);
+
 	alphabet_tyre.drawObject();
 
+	//
+	model = glm::translate(model, glm::vec3(x - 0.2f, y - 1.2f, z - 1.45f));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 4;
+	glUniform1ui(componentID, comp);
+
 	drawPlates();
-*/
+
+	////
+
+	model = glm::translate(model, glm::vec3(x, y - 1.6f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 5;
+	glUniform1ui(componentID, comp);
+
 	drawPins();
 
-	/*spring_loaded_lever.drawObject();
-	hub.drawObject();
-	finger_wheel.drawObject();
-	ratchet_wheel.drawObject();
-	back_contact.drawObject();*/
-}
+	model = glm::translate(model, glm::vec3(x, y + 0.5f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
-void drawPlates()
-{
-	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
+	///* WIRES HERE */
 
-	float pi = 3.141592;
-	float slice = 2 * pi / 26;
-
+	glBindVertexArray(vao);
+	//model = glm::scale(model, glm::vec3(scale, scale, scale));
+	//model = glm::rotate(model, 90.0f, glm::vec3(0, 0, 1)); //rotating in clockwise direction around x-axis
+	float t = 0.0f;
+	//////
 	for (int i = 0; i < 26; i++)
 	{
-		float angle = slice * i;
-		float newX = x + (1.55 / 4) * cos(angle);
-		float newZ = z + (1.55 / 4) * sin(angle);
+			float newnumplatez = 0.0f;
+			float newnumpinx = 0.0f;
+			float newnumpinz = 0.0f;
+			float newnumplatex = 0.0f;
+			
+			int count = 0;
+			count = mapAlphabet(i);
+				
+			for (int k = 0; k < i+1; k++)
+			{
+				newnumplatez += platez[k];
+				newnumplatex += platex[k];
+					
+			}
+			for (int j = 0; j < count + 1; j++)
+			{
 
-		model = glm::translate(model, glm::vec3(newX, y, newZ));
+				newnumpinx += pinx[j];
+				newnumpinz += pinz[j];
+			}
+
+			line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+			//line_vertex[1] = bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
+			line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+			line_vertex[3] = newnumplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
+
+			line_vertex[4] = 1.1f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
+
+			line_vertex[5] = newnumplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+			//line_vertex[6] = bezier(10.01f, 10.0f, 10.5f, 10.0f, 1); //Does nothing
+			//line_vertex[7] = bezier(-100.01f, 10.0f, 11.0f, 21.5f, 1); // Does Nothing
+			//line_vertex[8] = bezier(10.01f, 10.0f, 10.0f, 10.02f, 1); //Does nothing
+			
+
+			comp = 12;
+			glUniform1f(color1ID, color1[i]);
+			glUniform1f(color2ID, color2[i]);
+			glUniform1f(color3ID, color3[i]);
+
+			glUniform1ui(componentID, comp);
+		
+		model = glm::translate(model, glm::vec3(x, y, z));
+		glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+
+
+		glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)* numpoints * 3, &(line_vertex[0]), GL_DYNAMIC_DRAW);
+		glEnableVertexAttribArray(0);
+
+		/* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
+		index relates to the layout qualifier in the vertex shader and in
+		glEnableVertexAttribArray() and glDisableVertexAttribArray() */
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, colourObject);
+		glEnableVertexAttribArray(1);
+
+		/* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
+		index relates to the layout qualifier in the vertex shader and in
+		glEnableVertexAttribArray() and glDisableVertexAttribArray() */
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glDrawArrays(GL_LINE_LOOP, 0, numpoints);
+	}
+
+	
+	////
+
+
+	//
+	model = glm::mat4(1.0f);
+	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
+	model = glm::translate(model, glm::vec3(x, y - 2.5f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 6;
+	glUniform1ui(componentID, comp);
+
+	spring_loaded_lever.drawObject();
+	
+	//
+	model = glm::translate(model, glm::vec3(x, y - 3.f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 7;
+	glUniform1ui(componentID, comp);
+
+	hub.drawObject();
+
+	//
+	model = glm::translate(model, glm::vec3(x, y + 0.5f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 8;
+	glUniform1ui(componentID, comp);
+
+	finger_wheel.drawObject();
+
+	//
+	model = glm::translate(model, glm::vec3(x, y - 2.0f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 9;
+	glUniform1ui(componentID, comp);
+
+	ratchet_wheel.drawObject();
+
+	//
+	model = glm::translate(model, glm::vec3(x, y - 2.0f, z));
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	comp = 10;
+	glUniform1ui(componentID, comp);
+
+	back_contact.drawObject();
+}
+
+//Draw array of plate contacts in a circle
+void drawPlates()
+{
+	for (int i = 0; i < 26; i++)
+	{
+		model = glm::translate(model, glm::vec3(platex[i], y, platez[i]));
 		glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
 		plate_contacts.drawObject();
 	}
 }
 
+
+//Draw array of pins contacts in a circle
 void drawPins()
 {
-	model = glm::mat4(1.0f);
-	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
-
-	float pi = 3.141592;
-	float slice = 2 * pi / 26;
-
+	
 	for (int i = 0; i < 26; i++)
 	{
-		float angle = slice * i;
-		float newX = x + (1.55 / 4) * cos(angle);
-		float newZ = z + (1.55 / 4) * sin(angle);
-
-		model = glm::translate(model, glm::vec3(newX, y, newZ));
+		model = glm::translate(model, glm::vec3(pinx[i], y, pinz[i]));
 		glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
 		pin_contact.drawObject();
 	}
 }
+void calculateXZ()
+{
+	for (int i = 0; i < 26; i++)
+	{
+		float angle = slice * i;
+		platex[i] = (1.55 / 4) * cos(angle);
+		platez[i] = (1.55 / 4) * sin(angle);
+		pinx[i] = (1.55 / 4) * cos(angle);
+		pinz[i] = (1.55 / 4) * sin(angle);
+
+		pointx[i] = pinx[i];
+		pointz[i] = pinz[i];
+		/*std::cout << i << ": ";
+		std::cout << "platex: " << platex[i];
+		std::cout << ", platez: " << platez[i];
+		std::cout << "||";
+		std::cout << "pinx: " << pinx[i];
+		std::cout << ", pinz: " << pinz[i] << std::endl;
+		*/
+		color1[i] = glm::linearRand(0.0f, (float)i / 26);
+		color2[i] = glm::linearRand(0.0f, (float)i / 26);
+		color3[i] = glm::linearRand(0.0f, (float)i / 26);
+
+		//std::cout << color1[i] << " | " << color2[i] << " | " << color3[i] << std::endl;
+
+	}
+}
+
+float bezier(float origin, float control1, float control2, float destination, float t)
+{
+	float point = pow(1 - t, 3) * origin + 3.0 * pow(1 - t, 2) * t * control1 + 3.0 * (1 - t) * t * t * control2 + t * t * t * destination;
+			
+	return point;
+}
+
+void createBuffers()
+{
+	// Generate index (name) for one vertex array object
+	glGenVertexArrays(1, &vao);
+
+	// Create the vertex array object and make it current
+	glBindVertexArray(vao);
+
+	float vertexColours[] = { 0.1f, 0.5f, 1.0f, 1.0f };
+	calculateXZ();
+	//line_vertex = new glm::vec3[numpoints];
+	line_vertex = new GLfloat[numpoints * 3];
+	float t = 0.0f;
+	for (int i = 0; i < numpoints; i++)
+	{
+		line_vertex[i * 3] = bezier(0.01f, 1.0f, 1.5f, 1.0f, t); 
+		line_vertex[i * 3 + 1] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, t);
+		line_vertex[i * 3 + 2] =  bezier(0.01f, 0.0f, 0.0f, 0.02f, t);
+		
+		//line_vertex[0] = bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+		//line_vertex[1] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, 0);
+		//line_vertex[2] = bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+		//line_vertex[3] = bezier(0.01f, 1.0f, 1.5f, 1.0f, 0.5); 
+		//line_vertex[4] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, 0.5);
+		//line_vertex[5] = bezier(10.01f, 0.0f, 0.0f, 0.02f, 0.5);
+		//line_vertex[6] = bezier(0.01f, 1.0f, 1.5f, 1.0f, 1);
+		//line_vertex[7] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, 1);
+		//line_vertex[8] = bezier(1.01f, 1.0f, 1.0f, 1.02f, 1);
+
+
+		t += 1.0 / (float)numpoints;
+
+		/*std::cout << "x: " << line_vertex[i * 3];
+		std::cout << ", y: " << line_vertex[i * 3 + 1];
+		std::cout << ", z: " << line_vertex[i * 3 + 2];
+		std::cout << " t: " << t << std::endl;*/
+	}
+	//std::cout << "size: " << line_vertex[6] << std::endl;
+	//for (int i = 0; i < numpoints; i++)
+	//{
+	//	if (i == 55)
+	//	{
+	//		//line_vertex[i] = glm::vec3(platex[10], 1.0f, pinz[10]);
+	//	}
+	//	else
+	//	{
+	//		line_vertex[i] = platex[i];
+	//		line_vertex[i * 4 + 1] = pinx[i];
+	//		line_vertex[i * 4 + 2] = platez[i];
+	//		line_vertex[i * 4 + 3] =  pinz[i];
+	//		//line_vertex[i] = glm::vec3(platex[i], 1.0f, pinz[i]);
+	//	}
+	//}
+	/* Create a vertex buffer object to store vertices */
+	glGenBuffers(1, &positionBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)* numpoints * 3, &(line_vertex[0]), GL_DYNAMIC_DRAW);
+
+	//glBufferData(GL_ARRAY_BUFFER, numpoints * sizeof(glm::vec3), line_vertex, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+	/* Create a vertex buffer object to store vertex colours */
+	glGenBuffers(1, &colourObject);
+	glBindBuffer(GL_ARRAY_BUFFER, colourObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColours), vertexColours, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	done = true;
+}
+
+int mapAlphabet(int number)
+{
+	char letter = glw->getRotorOne().at(number);
+	int character = NULL;
+	switch (letter)
+	{
+	case 'A':
+		character = 0;
+		break;
+
+	case 'B':
+		character = 1;
+		break;
+
+	case 'C':
+		character = 2;
+		break;
+
+	case 'D':
+		character = 3;
+		break;
+
+	case 'E':
+		character = 4;
+		break;
+
+	case 'F':
+		character = 5;
+		break;
+
+	case 'G':
+		character = 6;
+		break;
+
+	case 'H':
+		character = 7;
+		break;
+
+	case 'I':
+		character = 8;
+		break;
+
+	case 'J':
+		character = 9;
+		break;
+
+	case 'K':
+		character = 10;
+		break;
+
+	case 'L':
+		character = 11;
+		break;
+
+	case 'M':
+		character = 12;
+		break;
+
+	case 'N':
+		character = 13;
+		break;
+
+	case 'O':
+		character = 14;
+		break;
+
+	case 'P':
+		character = 15;
+		break;
+
+	case 'Q':
+		character = 16;
+		break;
+
+	case 'R':
+		character = 17;
+		break;
+
+	case 'S':
+		character = 18;
+		break;
+
+	case 'T':
+		character = 19;
+		break;
+
+	case 'U':
+		character = 20;
+		break;
+
+	case 'V':
+		character = 21;
+		break;
+
+	case 'W':
+		character = 22;
+		break;
+
+	case 'X':
+		character = 23;
+		break;
+
+	case 'Y':
+		character = 24;
+		break;
+
+	case 'Z':
+		character = 25;
+		break;
+
+	default:
+		break;
+
+	}
+
+	return character;
+}
 
 void init(GLWrapper *glw)
 {
-	angle_x = 0;
+	angle_x = 15.0f;
 	angle_x_inc = 0;
 
 	angle_z = 0;
@@ -477,25 +889,18 @@ void init(GLWrapper *glw)
 	scale = 0.5;
 	scale_inc = 0;
 	aspect_ratio = 1.3333f;
-	// Generate index (name) for one vertex array object
-	glGenVertexArrays(1, &vao);
 
-	// Create the vertex array object and make it current
-	glBindVertexArray(vao);
+	vx = 0.0f;
+	vy = 4.0f;
+	vz = 8.0f;
 
-	///* Create a vertex buffer object to store vertices */
-	//glGenBuffers(1, &positionBufferObject);
-	//glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	lightx = 3.5f;
 
+	lighty = 1.75f;
 
-	///* Create a vertex buffer object to store vertex colours */
-	//glGenBuffers(1, &colourObject);
-	//glBindBuffer(GL_ARRAY_BUFFER, colourObject);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColours), vertexColours, GL_STATIC_DRAW);
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	lightz = 0.0f;
+	
+	//mapAlphabet();
 	try
 	{
 		program[0] = glw->LoadShader("imgui.vert", "imgui.frag");
@@ -539,6 +944,11 @@ void init(GLWrapper *glw)
 	projectionID = glGetUniformLocation(program[1], "projection");
 	lightposID = glGetUniformLocation(program[1], "lightpos");
 	normalmatrixID = glGetUniformLocation(program[1], "normalmatrix");
+	componentID = glGetUniformLocation(program[1], "comp");
+	color1ID = glGetUniformLocation(program[1], "color1");
+	color2ID = glGetUniformLocation(program[1], "color2");
+	color3ID = glGetUniformLocation(program[1], "color3");
+
 }
 
 void InitImGui()
@@ -592,7 +1002,8 @@ int main(int argc, char ** argv)
 	glw->setMouseButtonCallback(glfw_mouse_button_callback);
 	glw->setScrollCallback(glfw_scroll_callback);
 	glw->setCharCallback(glfw_char_callback);
-	
+	glw->setRotorOne("EKMFLGDQVZNTOWYHXUSPAIBRCJ");
+	glw->setRelfector("YRUHQSLDPXNGOKMIEBFZCWVJAT");
 	init(glw);
 	InitImGui();
 	
@@ -603,3 +1014,4 @@ int main(int argc, char ** argv)
 	delete(glw);
 	return 0;
 }
+

@@ -59,6 +59,7 @@ void object_ldr::load_obj(const char* filename) {
 			istringstream s(line.substr(2));
 			glm::vec3 v; s >> v.x; s >> v.y; s >> v.z; /*v.w = 1.0f;*/
 			vertices.push_back(v);
+		
 		}
 		else if (line.substr(0, 2) == "f ")
 		{
@@ -99,9 +100,9 @@ void object_ldr::createObject()
 		colours[i * 4 + 2] = 0.0f;
 		colours[i * 4 + 3] = 1.0f;
 
-		//textures[i * 4] = 1.f;
-		//textures[i * 4 + 1] = 0.0f;
-		//textures[i * 4 + 2] = 1.0f;
+		textures[i * 4] = 1.f;
+		textures[i * 4 + 1] = 0.0f;
+		textures[i * 4 + 2] = 1.0f;
 	}
 	// Generate index (name) for one vertex array object
 	glGenVertexArrays(1, &vao);

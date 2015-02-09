@@ -10,7 +10,7 @@ Iain Martin August 2014
 #endif
 
 #include "imgui.h"
-
+#include "enigma.h"
 // Glfw/Glew
 /* Inlcude GL_Load and GLFW */
 //#include <glload/gl_4_0.h>
@@ -32,6 +32,8 @@ Iain Martin August 2014
 #include <string>
 
 class GLWrapper {
+
+	
 private:
 
 	char *title;
@@ -45,7 +47,7 @@ private:
 	void(*chars)(GLFWwindow* window, unsigned int c);
 	bool running;
 	GLFWwindow* window;
-
+	enigma machine;
 public:
 	GLWrapper(int width, int height, char *title);
 	~GLWrapper();
@@ -68,6 +70,11 @@ public:
 	GLuint BuildShader(GLenum eShaderType, const std::string &shaderText);
 	GLuint BuildShaderProgram(std::string vertShaderStr, std::string fragShaderStr);
 	std::string readFile(const char *filePath);
+	std::string getRotorOne();
+	void setRotorOne(std::string str);
+
+	std::string getReflector();
+	void setRelfector(std::string str);
 
 	int eventLoop(bool mousePressed[]);
 	void swap();
@@ -75,7 +82,12 @@ public:
 	std::string mode;
 	int width;
 	int height;
-
+	
+	std::string rotorOne;
+	std::string encrypted;
+	char getCiphered(int index);
+	void Encrypt(char k);
+	void Decrypt(char k);
 };
 
 

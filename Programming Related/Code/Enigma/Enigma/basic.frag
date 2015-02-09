@@ -12,8 +12,8 @@ in vec3 fnormal, flightdir, fposition, fviewdir;
 in vec4 fdiffusecolour, fambientcolour, fcolour;
 //in float distancetolight;
 
-uniform uint colourmode, emitmode;
-
+uniform uint colourmode, emitmode, comp;
+//varying vec2 v_texcoord;
 // Output pixel fragment colour
 out vec4 outputColor;
 
@@ -21,13 +21,13 @@ out vec4 outputColor;
 void main()
 {
 	
-		specular_colour = vec4(0.508273, 0.508273, 0.508273, 1.0);
-		global_ambient = vec4(0.19225, 0.19225, 0.19225, 1.0);
+		specular_colour = vec4(0.908273, 0.908273, 0.908273, 1.0);
+		global_ambient = vec4(0.409225, 0.409225, 0.409225, 1.0);
 		shininess = 0.9 * 128; //SILVER
 
 		vec4 emissive = vec4(0);				// Create a vec4(0, 0, 0) for our emmissive light
-		vec4 fambientcolour = fdiffusecolour * 0.99;
-		vec4 fspecularcolour =  vec4(1.0, 1.0, 0.7, 1.0);
+		vec4 fambientcolour = fdiffusecolour * 9.99;
+		vec4 fspecularcolour =  vec4(1.0, 1.0, 0.5, 1.0);
 		float distancetolight = length(flightdir);
 
 	
@@ -59,9 +59,8 @@ void main()
 		// Note that you may want to exclude the ambient form the attenuation factor so objects
 		// are always visible, or include a global ambient
 
-
-
 		outputColor = attenuation*(fambientcolour + diffuse + specular) + emissive + global_ambient;
 
+	
 }
 

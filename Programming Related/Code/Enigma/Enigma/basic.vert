@@ -16,22 +16,79 @@ out vec4 fdiffusecolour, fcolour;
 // These are the uniforms that are defined in the application
 uniform mat4 model, view, projection;
 uniform mat3 normalmatrix;
-uniform uint colourmode;
+uniform uint colourmode, comp, wiremode;
 uniform vec4 lightpos;
+uniform highp float color1, color2, color3;
 
 void main()
 {
 	vec4 position_h = vec4(position, 1.0);	// Convert the (x,y,z) position to homogeneous coords (x,y,z,w)
 	vec3 light_pos3 = lightpos.xyz;			
 	vec4 newcolour = vec4(colour, 1.0);
-	
+	float num = wiremode;
 	// Switch the vertex colour based on the colourmode
 	if (colourmode == 1)
 		fdiffusecolour = newcolour;
 	else
 		fdiffusecolour = vec4(0.50754, 0.50754, 0.50754, 1.0);
 	
-	
+	switch (comp)
+	{
+		case 0:
+			fdiffusecolour = vec4(0.5223, 0.0754, 0.1, 1.0);
+			break;
+
+		case 1:
+			fdiffusecolour = vec4(0.5223, 0.5754, 0.5242, 1.0);
+			break;
+
+		case 2:
+			fdiffusecolour = vec4(0.0223, 0.0754, 0.8, 1.0);
+			break;
+
+		case 3:
+			fdiffusecolour = vec4(0.5223, 0.5754, 0.1, 1.0);
+			break;
+
+		case 4:
+			fdiffusecolour = vec4(0.5223, 0.5754, 0.5242, 1.0);
+			break;
+
+		case 5:
+			fdiffusecolour = vec4(0.0223, 0.0754, 0.8, 1.0);
+			break;
+
+		case 6:
+			fdiffusecolour = vec4(0.5223, 0.0754, 0.1, 1.0);
+			break;
+
+		case 7:
+			fdiffusecolour = vec4(0.8223, 0.5754, 0.5242, 1.0);
+			break;
+
+		case 8:
+			fdiffusecolour = vec4(0.0223, 0.0754, 0.8, 1.0);
+			break;
+
+		case 9:
+			fdiffusecolour = vec4(0.5223, 0.0754, 0.1, 1.0);
+			break;
+
+		case 10:
+			fdiffusecolour = vec4(0.5223, 0.5754, 0.5242, 1.0);
+			break;
+
+		case 12:
+			fdiffusecolour = vec4(color1, color2, color3, 1.0);
+			break;
+
+		case 99:
+			fdiffusecolour = vec4(0.2223, 0.8754, 0.2242, 1.0);
+			break;
+		default:
+			fdiffusecolour = vec4(0.9223, 0.9754, 0.9242, 1.0);
+			break;
+	}
 	// Define our vectors for calculating diffuse and specular lighting
 	mat4 mv_matrix = view * model;						// Calculate the model-view transformation
 	mat3 normalmatrix = mat3(transpose(inverse(mv_matrix)));
@@ -45,5 +102,3 @@ void main()
 
 
 }
-
-

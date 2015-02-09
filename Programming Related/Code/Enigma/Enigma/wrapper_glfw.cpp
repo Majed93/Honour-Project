@@ -12,7 +12,7 @@
 
 #include "imgui.h"
 #include "wrapper_glfw.h"
-
+#include "enigma.h"
 // Glfw/Glew
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -28,6 +28,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <cctype>
+
 
 
 /* Constructor for wrapper object */
@@ -38,7 +40,7 @@ GLWrapper::GLWrapper(int width, int height, char *title) {
 	this->title = title;
 	this->fps = 60;
 	this->running = true;
-
+	encrypted = "";
 	/* Initialise GLFW and exit if it fails */
 	if (!glfwInit()) 
 	{
@@ -139,7 +141,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			show_encrypt = false;
 			show_decrypt = false;
 			ImGui::Begin("", &show_main, ImVec2(100, 100), fill_alpha, layout_flags);
-			title = "Graphical Enigma Simutlator - Main Menu";
+			title = "Graphical Enigma Simulator - Main Menu";
 
 			ImGui::SetWindowPos(ImVec2(0, 0), 0);
 			ImGui::SetWindowSize(ImVec2(width, height), 0);
@@ -161,7 +163,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			show_main = false;
 			ImGui::Begin("Encrypt", &show_main, ImVec2(100, 100), fill_alpha, layout_flags);
 			//no_titlebar = false;
-			title = "Graphical Enigma Simutlator - Encrypt";
+			title = "Graphical Enigma Simulator - Encrypt";
 			ImGui::SetWindowPos(ImVec2(0, 350), 0);
 			ImGui::SetWindowSize(ImVec2(width, height - 250), 0);
 
@@ -178,17 +180,31 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::PopItemWidth();
 
 			static float wrap_width = 10.0f;
-
+			
 			ImGui::PushItemWidth(width - 25);
 			ImGui::Text("Plain Text");
 			static char strPlain[512] = "";
 			ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain));
-
+			/*ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float focus_sz = 32.0f;
+				float focus_x = ImClamp(ImGui::GetMousePos().x - tex_screen_pos.x - focus_sz * 0.5f, 0.0f, tex_w - focus_sz);
+				float focus_y = ImClamp(ImGui::GetMousePos().y - tex_screen_pos.y - focus_sz * 0.5f, 0.0f, tex_h - focus_sz);
+				ImGui::EndTooltip();
+			}*/
 			ImGui::Text("Cipher Text");
-			static char strCipher[512] = "";
-			ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher));
+			//static char strCipher[512] = "";
+			//ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher));
+			ImGuiStyle style;
+			style.ItemInnerSpacing.x = 10.f;
+			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + 190, 10.0f), ImVec2(wrap_width + 190, ImGui::GetTextLineHeight()), 0xff808080);
+			ImGui::Text(encrypted.c_str());
+			
+			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, 475.0f), 0xff808080);
 			ImGui::PopItemWidth();
-
+			
 			ImGui::End();
 		}
 		//Show Decryption screen
@@ -199,7 +215,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			show_main = false;
 			ImGui::Begin("", &show_main, ImVec2(100, 100), fill_alpha, layout_flags);
-			title = "Graphical Enigma Simutlator - Decrypt";
+			title = "Graphical Enigma Simulator - Decrypt";
 			ImGui::SetWindowPos(ImVec2(0, 350), 0);
 			ImGui::SetWindowSize(ImVec2(width, height - 250), 0);
 
@@ -459,3 +475,48 @@ void GLWrapper::UpdateImGui(bool mousePressed[2])
 	// Start the frame
 	ImGui::NewFrame();
 }
+
+std::string GLWrapper::getRotorOne()
+{
+	return machine.getRotorOne();
+}
+
+void GLWrapper::setRotorOne(std::string str)
+{
+	machine.setRotorOne(str);
+}
+
+std::string GLWrapper::getReflector()
+{
+	return machine.getReflector();
+}
+
+void GLWrapper::setRelfector(std::string str)
+{
+	machine.setReflector(str);
+}
+
+void GLWrapper::Encrypt(char k)
+{
+	std::cout << "letter:" << machine.getIndex(k) << std::endl;
+	std::cout << "cipher letter:" << getCiphered(machine.getIndex(k)) << std::endl;
+	machine.offset();
+}
+
+void GLWrapper::Decrypt(char k)
+{
+
+}
+
+char GLWrapper::getCiphered(int index)
+{
+	char rOne = getRotorOne().at(index);
+	char reflect = getReflector().at(machine.getIndex(rOne));
+
+	std::size_t newrotorone = getRotorOne().find(reflect);
+	encrypted += machine.getAlphabet().at(newrotorone);
+	return machine.getAlphabet().at(newrotorone);
+
+	//A SHOULD = H
+}
+

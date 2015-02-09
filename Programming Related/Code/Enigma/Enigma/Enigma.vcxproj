@@ -70,6 +70,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="enigma.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="object_ldr.cpp" />
@@ -82,6 +83,7 @@
     <None Include="imgui.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="enigma.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="object_ldr.h" />

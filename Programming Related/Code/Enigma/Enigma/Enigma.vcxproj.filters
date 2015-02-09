@@ -27,6 +27,9 @@
     <ClCompile Include="object_ldr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="enigma.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="basic.frag" />
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="object_ldr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enigma.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
