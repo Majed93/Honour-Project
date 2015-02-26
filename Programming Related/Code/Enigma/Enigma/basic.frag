@@ -53,7 +53,9 @@ void main()
 		attenuation *= 1.5;
 
 		// If emitmode is 1 then we enable emmissive lighting
-		if (emitmode == 1) emissive = vec4(0.8, 0.8, 0.6, 0.95); 
+		//if (emitmode == 1) emissive = vec4(0.8, 0.8, 0.8, 1.0); 
+
+		//if (emitmode == 2) emissive = vec4(0.05, 0.05, 0.99, 1.0); 
 
 		// Calculate the output colour, includung attenuation on the diffuse and specular components
 		// Note that you may want to exclude the ambient form the attenuation factor so objects

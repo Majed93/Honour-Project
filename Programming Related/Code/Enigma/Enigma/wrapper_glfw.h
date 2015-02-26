@@ -70,11 +70,19 @@ public:
 	GLuint BuildShader(GLenum eShaderType, const std::string &shaderText);
 	GLuint BuildShaderProgram(std::string vertShaderStr, std::string fragShaderStr);
 	std::string readFile(const char *filePath);
+
 	std::string getRotorOne();
 	void setRotorOne(std::string str);
 
+	std::string getStaticrOne();
+	void setStaticrOne(std::string str);
+
 	std::string getReflector();
 	void setRelfector(std::string str);
+
+	std::string getAlphabet();
+
+	int getIndex(char k);
 
 	int eventLoop(bool mousePressed[]);
 	void swap();
@@ -83,11 +91,22 @@ public:
 	int width;
 	int height;
 	
+	char strPlain[70];
+	char strCipher[70];
+	int count;
 	std::string rotorOne;
 	std::string encrypted;
-	char getCiphered(int index);
+	std::string decrypted;
+	bool* changed;
+	bool* platechange;
+	bool complete;
+	int changenum;
+	GLfloat rotation, introtation = 0.0f;
+	GLchar getCiphered(int index);
+	GLchar getPlain(int index, char k);
 	void Encrypt(char k);
 	void Decrypt(char k);
+	void reset();
 };
 
 

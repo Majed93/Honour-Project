@@ -51,7 +51,7 @@ void main()
 			break;
 
 		case 4:
-			fdiffusecolour = vec4(0.5223, 0.5754, 0.5242, 1.0);
+			fdiffusecolour = vec4(0.9223, 0.9754, 0.9242, 1.0);
 			break;
 
 		case 5:
@@ -75,11 +75,15 @@ void main()
 			break;
 
 		case 10:
-			fdiffusecolour = vec4(0.5223, 0.5754, 0.5242, 1.0);
+			fdiffusecolour = vec4(0.1223, 0.3754, 0.0242, 1.0);
 			break;
 
 		case 12:
 			fdiffusecolour = vec4(color1, color2, color3, 1.0);
+			break;
+
+		case 13:
+			fdiffusecolour = vec4(0.05, 0.05, 0.99, 1.0);
 			break;
 
 		case 99:

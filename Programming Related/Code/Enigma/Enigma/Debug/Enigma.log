@@ -1,11 +1,16 @@
-﻿Build started 09/02/2015 20:09:22.
+﻿Build started 26/02/2015 19:46:40.
      1>Project "C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\Enigma.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\-Majed\Desktop\imgui-master\examples\opengl_example\glew\include" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt enigma.cpp
-         enigma.cpp
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\enigma.cpp(59): warning C4018: '<' : signed/unsigned mismatch
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glfw" /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glew" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt wrapper_glfw.cpp
+         wrapper_glfw.cpp
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(157): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(178): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(194): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(258): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(274): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(477): warning C4101: 'e' : unreferenced local variable
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Users\-Majed\Desktop\imgui-master\examples\opengl_example\glfw\lib-msvc100" /LIBPATH:"C:\Users\-Majed\Desktop\imgui-master\examples\opengl_example\glew\lib\Release\Win32" opengl32.lib imm32.lib glfw3.lib glew32s.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.lib" /MACHINE:X86 Debug\enigma.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glfw" /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glew" opengl32.lib imm32.lib glfw3.lib glew32s.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.lib" /MACHINE:X86 Debug\enigma.obj
          Debug\imgui.obj
          Debug\main.obj
          Debug\object_ldr.obj
@@ -15,4 +20,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.13
+Time Elapsed 00:00:01.78

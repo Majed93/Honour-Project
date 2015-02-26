@@ -17,6 +17,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
 
 /* GLM core */
@@ -40,7 +41,10 @@ GLWrapper::GLWrapper(int width, int height, char *title) {
 	this->title = title;
 	this->fps = 60;
 	this->running = true;
-	encrypted = "";
+	complete = false;
+	changed = new bool[25];
+	platechange = new bool[25];
+	reset();
 	/* Initialise GLFW and exit if it fails */
 	if (!glfwInit()) 
 	{
@@ -140,6 +144,12 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			mode = "";
 			show_encrypt = false;
 			show_decrypt = false;
+			
+			if (!complete)
+			{
+				reset();
+				
+			}
 			ImGui::Begin("", &show_main, ImVec2(100, 100), fill_alpha, layout_flags);
 			title = "Graphical Enigma Simulator - Main Menu";
 
@@ -183,9 +193,32 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			
 			ImGui::PushItemWidth(width - 25);
 			ImGui::Text("Plain Text");
-			static char strPlain[512] = "";
-			ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain));
-			/*ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
+			
+			struct TextFilters {
+				static int FilterAZ(ImGuiTextEditCallbackData* data)
+				{
+					ImWchar c = data->EventChar;
+					if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+					{
+						return 1;
+					}
+					else
+					{
+						if ((c >= 'a' && c <= 'z'))
+						{
+							data->EventChar += 'A' - 'a';
+						}
+					}
+					return 0;
+				}
+			};
+			
+			if (ImGui::GetWindowIsFocused() && !ImGui::IsAnyItemActive())
+				ImGui::SetKeyboardFocusHere();
+
+				ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
+			
+				/*ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::BeginTooltip();
@@ -195,18 +228,21 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::EndTooltip();
 			}*/
 			ImGui::Text("Cipher Text");
-			//static char strCipher[512] = "";
-			//ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher));
+			
 			ImGuiStyle style;
 			style.ItemInnerSpacing.x = 10.f;
-			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + 190, 10.0f), ImVec2(wrap_width + 190, ImGui::GetTextLineHeight()), 0xff808080);
+			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f), ImVec2(wrap_width + width, ImGui::GetTextLineHeight()), 0xff808080);
 			ImGui::Text(encrypted.c_str());
 			
 			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, 475.0f), 0xff808080);
 			ImGui::PopItemWidth();
 			
+			complete = false;
+			
 			ImGui::End();
 		}
+
+		/***************************************************************************************************************/
 		//Show Decryption screen
 		if (show_decrypt == true)
 		{
@@ -235,13 +271,41 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::PushItemWidth(width - 25);
 			ImGui::Text("Plain Text");
-			static char strPlain[512] = "";
-			ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain));
 
+			ImGuiStyle style;
+			style.ItemInnerSpacing.x = 10.f;
+			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f), ImVec2(wrap_width + width, ImGui::GetTextLineHeight()), 0xff808080);
+			ImGui::Text(decrypted.c_str());
+
+			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, 435.0f), 0xff808080);
+			
 			ImGui::Text("Cipher Text");
-			static char strCipher[512] = "";
-			ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher));
+			struct TextFilters {
+				static int FilterAZ(ImGuiTextEditCallbackData* data)
+				{
+					ImWchar c = data->EventChar;
+					if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+					{
+						return 1;
+					}
+					else
+					{
+						if ((c >= 'a' && c <= 'z'))
+						{
+							data->EventChar += 'A' - 'a';
+						}
+					}
+					return 0;
+				}
+			};
+
+			if (ImGui::GetWindowIsFocused() && !ImGui::IsAnyItemActive())
+				ImGui::SetKeyboardFocusHere();
+
+			ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
 			ImGui::PopItemWidth();
+
+			complete = false;
 
 			ImGui::End();
 		}
@@ -476,6 +540,11 @@ void GLWrapper::UpdateImGui(bool mousePressed[2])
 	ImGui::NewFrame();
 }
 
+std::string GLWrapper::getAlphabet()
+{
+	return machine.getAlphabet();
+}
+
 std::string GLWrapper::getRotorOne()
 {
 	return machine.getRotorOne();
@@ -486,6 +555,15 @@ void GLWrapper::setRotorOne(std::string str)
 	machine.setRotorOne(str);
 }
 
+std::string GLWrapper::getStaticrOne()
+{
+	return machine.getStaticrOne();
+}
+
+void GLWrapper::setStaticrOne(std::string str)
+{
+	machine.setStaticrOne(str);
+}
 std::string GLWrapper::getReflector()
 {
 	return machine.getReflector();
@@ -498,25 +576,108 @@ void GLWrapper::setRelfector(std::string str)
 
 void GLWrapper::Encrypt(char k)
 {
-	std::cout << "letter:" << machine.getIndex(k) << std::endl;
-	std::cout << "cipher letter:" << getCiphered(machine.getIndex(k)) << std::endl;
+	//std::cout << "letter index:" << machine.getIndex(k) << std::endl;
+	//std::cout << "cipher letter:" << getCiphered(machine.getIndex(k)) << std::endl;
+	getCiphered(machine.getIndex(k));
 	machine.offset();
+	count += 1;
 }
 
 void GLWrapper::Decrypt(char k)
 {
+	getPlain(machine.getIndex(k), k);
+	machine.offset();
+	count += 1;
+}
+
+int GLWrapper::getIndex(char k)
+{
+	return machine.getIndex(k);
+}
+char GLWrapper::getCiphered(int index)
+{
+	for (int i = 0; i < 26; i++)
+	{
+		changed[i] = false;
+		platechange[i] = false;
+	}
+	changenum = count;
+	int totalindex = index + changenum;
+	if (totalindex > 24)
+	{
+		totalindex -= 25;
+	}
+	
+	changed[totalindex] = true;
+
+	char rOne = getRotorOne().at(index);
+	char reflect = getReflector().at(machine.getIndex(rOne));
+	std::size_t newrotorone = machine.getAlphabet().find(reflect, 0);
+	encrypted += machine.getRotorOne().at(newrotorone);
+	
+	
+	//std::cout << newplate;
+	/*std::cout << "rone " << rOne << std::endl;
+	std::cout << "reflect " << reflect << std::endl;
+	std::cout << "newrotor " << newrotorone << std::endl;
+*/
+	return machine.getRotorOne().at(newrotorone);
 
 }
 
-char GLWrapper::getCiphered(int index)
+char GLWrapper::getPlain(int index, char k)
 {
-	char rOne = getRotorOne().at(index);
-	char reflect = getReflector().at(machine.getIndex(rOne));
+	for (int i = 0; i < 26; i++)
+	{
+		changed[i] = false;
+		platechange[i] = false;
+	}
+	changenum = count;
+	int totalindex = index + changenum;
+	if (totalindex > 24)
+	{
+		totalindex -= 25;
+	}
 
-	std::size_t newrotorone = getRotorOne().find(reflect);
-	encrypted += machine.getAlphabet().at(newrotorone);
-	return machine.getAlphabet().at(newrotorone);
+	changed[totalindex] = true;
 
-	//A SHOULD = H
+	std::size_t newrotorone = machine.getRotorOne().find(k, 0);
+	char rOne = machine.getAlphabet().at(newrotorone);
+	std::size_t newreflect = machine.getReflector().find(rOne, 0);
+	char inrOne = machine.getAlphabet().at(newreflect);
+	std::size_t newchar = machine.getRotorOne().find(inrOne, 0);
+
+	decrypted += machine.getAlphabet().at(newchar);
+
+	/*std::cout << "newrotor " << newrotorone<< std::endl;
+	std::cout << "rOne " << rOne << std::endl;
+	std::cout << "newreflect " << newreflect << std::endl;
+	std::cout << "in rotor one " << inrOne << std::endl;
+	std::cout << "Rotor one index " << newchar << std::endl;
+	std::cout << "Decrypted " << decrypted << std::endl;
+*/
+	return machine.getIndex(newchar);;
+
+}
+
+void GLWrapper::reset()
+{
+	encrypted = "";
+	decrypted = "";
+	count = 0;
+	for (int i = 0; i < 26; i++)
+	{
+		changed[i] = false;
+		platechange[i] = false;
+	}
+	//MAKE IT ONLY HAPPEN ONCE FOR EFFICIENCY! //IF DONE = TRUE THEN DON'T DO!
+	for (int i = 0; i < 70; i++)
+	{
+		strPlain[i] = '\0';
+		strCipher[i] = '\0';
+	}
+	setRotorOne(getStaticrOne());
+	rotation, introtation = 0.0f;
+	complete = true;
 }
 

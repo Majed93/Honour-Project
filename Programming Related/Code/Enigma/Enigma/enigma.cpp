@@ -42,6 +42,16 @@ void enigma::setRotorOne(std::string str)
 	rotorOne = str;
 }
 
+std::string enigma::getStaticrOne()
+{
+	return staticrOne;
+}
+
+void enigma::setStaticrOne(std::string str)
+{
+	staticrOne = str;
+}
+
 std::string enigma::getReflector()
 {
 	return reflector;
