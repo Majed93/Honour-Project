@@ -83,6 +83,7 @@ void enigma::offset()
 	//std::cout << "new " << newcode << std::endl;
 	setRotorOne(newcode);
 }
+
 int enigma::getIndex(char k)
 {
 	int character = NULL;

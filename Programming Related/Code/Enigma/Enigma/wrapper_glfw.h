@@ -104,6 +104,16 @@ public:
 	GLfloat rotation, introtation = 0.0f;
 	GLchar getCiphered(int index);
 	GLchar getPlain(int index, char k);
+	
+	std::size_t st_rotorone;
+	char char_rOne;
+	char char_reflect;
+	char char_letter;
+	std::size_t st_newreflect;
+	char char_inrOne;
+	std::size_t st_newchar;
+
+
 	void Encrypt(char k);
 	void Decrypt(char k);
 	void reset();

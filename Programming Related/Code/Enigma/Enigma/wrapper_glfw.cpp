@@ -125,7 +125,9 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		mousePressed[0] = mousePressed[1] = false;
 		glfwPollEvents();
 		UpdateImGui(mousePressed);
-				
+		
+
+		 
 		static bool show_main = true;
 		static bool show_encrypt = false;
 		static bool show_decrypt = false;
@@ -159,9 +161,11 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGuiStyle style;
 			style.WindowRounding = 5.1f;
 			
+			ImGui::PushStyleColor(ImGuiCol_Button, ImColor::HSV(0.2f, 0.2f, 0.2f));
 			show_encrypt ^= ImGui::Button("Encrypt");// , ImVec2(60, 20), true);
 			show_decrypt ^= ImGui::Button("Decrypt");
 			show_exit ^= ImGui::Button("Exit");
+			ImGui::PopStyleColor();
 			ImGui::End();
 		}
 
@@ -601,27 +605,29 @@ char GLWrapper::getCiphered(int index)
 		changed[i] = false;
 		platechange[i] = false;
 	}
-	changenum = count;
-	int totalindex = index + changenum;
-	if (totalindex > 24)
-	{
-		totalindex -= 25;
-	}
+	//changenum = count;
 	
+	int totalindex = index + changenum;
+	if (totalindex > 25)
+	{
+		totalindex -= 26;
+	}
 	changed[totalindex] = true;
 
-	char rOne = getRotorOne().at(index);
-	char reflect = getReflector().at(machine.getIndex(rOne));
-	std::size_t newrotorone = machine.getAlphabet().find(reflect, 0);
-	encrypted += machine.getRotorOne().at(newrotorone);
+	std::cout << "index " << totalindex << std::endl;
+
+	char_rOne = getRotorOne().at(index);
+	char_reflect = getReflector().at(machine.getIndex(char_rOne));
+	st_newchar = machine.getRotorOne().find(char_reflect, 0);
+	char_letter = machine.getAlphabet().at(st_newchar);
+	encrypted += char_letter;// machine.getRotorOne().at(st_newchar);
 	
-	
-	//std::cout << newplate;
-	/*std::cout << "rone " << rOne << std::endl;
-	std::cout << "reflect " << reflect << std::endl;
-	std::cout << "newrotor " << newrotorone << std::endl;
-*/
-	return machine.getRotorOne().at(newrotorone);
+	std::cout << "rone " << char_rOne << std::endl;//E//U
+	std::cout << "reflect " << char_reflect << std::endl;//Q//C
+	std::cout << "newrotor " << st_newchar << std::endl;//16//2
+	std::cout << "letter " << char_letter << std::endl;//X//K
+
+	return machine.getRotorOne().at(st_newchar);
 
 }
 
@@ -633,30 +639,37 @@ char GLWrapper::getPlain(int index, char k)
 		platechange[i] = false;
 	}
 	changenum = count;
-	int totalindex = index + changenum;
-	if (totalindex > 24)
-	{
-		totalindex -= 25;
-	}
 
-	changed[totalindex] = true;
-
-	std::size_t newrotorone = machine.getRotorOne().find(k, 0);
-	char rOne = machine.getAlphabet().at(newrotorone);
-	std::size_t newreflect = machine.getReflector().find(rOne, 0);
-	char inrOne = machine.getAlphabet().at(newreflect);
-	std::size_t newchar = machine.getRotorOne().find(inrOne, 0);
-
-	decrypted += machine.getAlphabet().at(newchar);
-
-	/*std::cout << "newrotor " << newrotorone<< std::endl;
-	std::cout << "rOne " << rOne << std::endl;
-	std::cout << "newreflect " << newreflect << std::endl;
-	std::cout << "in rotor one " << inrOne << std::endl;
-	std::cout << "Rotor one index " << newchar << std::endl;
-	std::cout << "Decrypted " << decrypted << std::endl;
+	/*index = machine.getStaticrOne().find(k, 0);
+	char temp = machine.getAlphabet().at(index);
+	index = machine.getAlphabet().find(temp, 0);
 */
-	return machine.getIndex(newchar);;
+	int totalindex = index + changenum;
+	if (totalindex > 25)
+	{
+		totalindex -= 26;
+	}
+	//totalindex = 0;
+	std::cout << "index " << totalindex << std::endl;
+	changed[totalindex] = true;
+	
+	st_rotorone = machine.getRotorOne().find(k, 0);
+	char_rOne = machine.getRotorOne().at(index);
+	st_newreflect = machine.getReflector().find(char_rOne, 0);
+	char_inrOne = machine.getAlphabet().at(st_newreflect);
+	st_newchar = machine.getRotorOne().find(char_inrOne, 0);
+	char_letter = machine.getAlphabet().at(st_newchar);
+	decrypted += char_letter;// machine.getAlphabet().at(st_newchar);
+
+	std::cout << "newrotor " << st_rotorone << std::endl;//16//2
+	std::cout << "rOne " << char_rOne << std::endl;//Q//C
+	std::cout << "newreflect " << st_newreflect << std::endl;//4//20
+	std::cout << "in rotor one " << char_inrOne << std::endl;//E//U
+	std::cout << "Rotor one index " << st_newchar << std::endl;//0//18
+	std::cout << "letter " << char_letter << std::endl;//A
+
+	
+	return machine.getIndex(st_newchar);
 
 }
 
@@ -678,6 +691,13 @@ void GLWrapper::reset()
 	}
 	setRotorOne(getStaticrOne());
 	rotation, introtation = 0.0f;
+	st_rotorone = 0;
+	char_rOne = ' ';
+	char_reflect = ' ';
+	char_letter = ' ';
+	st_newreflect = 0;
+	char_inrOne = ' ';
+	st_newchar = 0;
 	complete = true;
 }
 

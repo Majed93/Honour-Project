@@ -64,7 +64,7 @@ GLfloat rotationinc = 0.1f;
 GLuint count, countpin, refcount, pincountv, platecountv = 0.0f;
 GLfloat newnumplatez, newnumpinx, newnumpinz, newnumplatex, newnumrefz, newnumrefx = 0.0f;
 GLfloat convplatex, convplatez, convpinx, convpinz, convrefx, convrefz = 0.0f;
-
+std::size_t newcount;
 GLfloat* line_vertex;
 GLboolean done = false;
 /* Uniforms*/
@@ -620,7 +620,6 @@ void drawObjects()
 			glUniform1f(color1ID, 0.9f);
 			glUniform1f(color2ID, 0.9f);
 			glUniform1f(color3ID, 0.7f);
-			
 			emitmode = 1;
 			glUniform1ui(emitmodeID, emitmode);
 
@@ -735,12 +734,13 @@ void drawObjects()
 	
 	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
 
+	/*PUT BACK IN IF YOU WANT REFLECTOR TO ROTATE
 	model = glm::rotate(model, -glw->introtation, glm::vec3(0, 1, 0)); //rotate y axis
 
 	if (glw->introtation < glw->rotation)
 	{
 		glw->introtation += rotationinc;
-	}
+	}*/
 	model = glm::rotate(model, -rot, glm::vec3(0, 1, 0));
 	
 	model = glm::translate(model, glm::vec3(x, y - 7.3f, z + 0.1f));
@@ -759,6 +759,8 @@ void drawObjects()
 
 	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
 
+	/*PUT BACK IN IF YOU WANT REFLECTOR TO ROTATE
+
 	glw->rotation = (360.0f / 26.0f) * (float)glw->count;
 
 	model = glm::rotate(model, -glw->introtation, glm::vec3(0, 1, 0)); //rotate y axis
@@ -766,7 +768,7 @@ void drawObjects()
 	if (glw->introtation < glw->rotation)
 	{
 		glw->introtation += rotationinc;
-	}
+	}*/
 
 	model = glm::rotate(model, 180.0f, glm::vec3(0, 0, 1));
 	//model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
@@ -797,184 +799,187 @@ void drawObjects()
 	model = glm::translate(model, glm::vec3(x - 0.2f, y + 1.f, z - 1.45f));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
-	for (int i = 0; i < 26; i++)
-	{	
-		if (glw->changed[i] == true)
+		
+
+		for (int a = 0; a < 26; a++)
 		{
-			newnumpinx = 0.0f;
-			newnumpinz = 0.0f;
-			newnumplatex = 0.0f;
-			newnumplatez = 0.0f;
-			newnumrefz = 0.0f;
-			newnumrefx = 0.0f;
-			convplatex = 0.0f;
-			convplatez = 0.0f;
-			convpinx = 0.0f;
-			convpinz = 0.0f;
-			convrefx = 0.0f;
-			convrefz = 0.0f;
-
-			count = mapAlphabet(i, 1);
-			countpin = mapAlphabet(i, 0);
-
-			refcount = mapAlphabet(i, 2);
-			pincountv = mapAlphabet(i, 3);
-			platecountv = mapAlphabet(i, 4);
-
-			for (int j = 0; j < platecountv + 1; j++)
+			newcount = a;
+			if (glw->changed[newcount] == true)
 			{
-				convplatex += platex[j];
-				convplatez += platez[j];
+				newnumpinx = 0.0f;
+				newnumpinz = 0.0f;
+				newnumplatex = 0.0f;
+				newnumplatez = 0.0f;
+				newnumrefz = 0.0f;
+				newnumrefx = 0.0f;
+				convplatex = 0.0f;
+				convplatez = 0.0f;
+				convpinx = 0.0f;
+				convpinz = 0.0f;
+				convrefx = 0.0f;
+				convrefz = 0.0f;
+
+				count = mapAlphabet(newcount, 1);
+				countpin = mapAlphabet(newcount, 0);
+
+				refcount = mapAlphabet(newcount, 2);//E
+				pincountv = mapAlphabet(newcount, 3);//Q
+				platecountv = mapAlphabet(newcount, 4);//X
+
+				for (int j = 0; j < platecountv + 1 ; j++)
+				{
+					convplatex += platex[j];
+					convplatez += platez[j];
+				}
+
+				for (int k = 0; k < refcount + 1; k++)
+				{
+					convrefx += pinx[k];
+					convrefz += pinz[k];
+				}
+
+				for (int l = 0; l < pincountv + 1; l++)
+				{
+					convpinx += pinx[l];
+					convpinz += pinz[l];
+				}
+
+				for (int m = 0; m < newcount + 1; m++)
+				{
+					newnumplatex += platex[m];
+					newnumplatez += platez[m];
+				}
+
+				for (int n = 0; n < countpin + 1; n++)
+				{
+					newnumpinx += pinx[n];
+					newnumpinz += pinz[n];
+				}
+
+				for (int o = 0; o < count + 1; o++)//?
+				{
+					newnumrefx += pinx[o];
+					newnumrefz += pinz[o];
+				}
+				//////////////////////////////////////////////////////////////////////
+				//LINES FOR THE VERY START
+
+				line_vertex[0] = newnumplatex;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+				line_vertex[1] = 5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
+				line_vertex[2] = newnumplatez;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+
+				line_vertex[3] = newnumplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
+				//MUST BE GREATER THAN line_vertex[1]
+				line_vertex[4] = 2.1f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
+				line_vertex[5] = newnumplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+
+				emitmode = 1;
+				glUniform1ui(emitmodeID, emitmode);
+
+				drawBuffers();
+
+				//THROUGH TO REFLECTOR
+				line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+				line_vertex[1] = 0.0f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
+				line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+
+				line_vertex[3] = newnumpinx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
+				line_vertex[4] = -5.3f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
+				line_vertex[5] = newnumpinz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+
+				//line_vertex[6] = newnumrefx;
+				//line_vertex[7] = 1.3f;
+				//line_vertex[8] = newnumrefz;
+
+				emitmode = 1;
+				glUniform1ui(emitmodeID, emitmode);
+
+				drawBuffers();
+				//////////////////////////////////////////////////////////////////////
+				//LINES FROM RATCHET TO REFLECTOR
+
+				line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+				line_vertex[1] = -5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
+				line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+
+				line_vertex[3] = newnumrefx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
+				//MUST BE GREATER THAN line_vertex[1]
+				line_vertex[4] = -6.18f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
+				line_vertex[5] = newnumrefz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+
+				emitmode = 1;
+				glUniform1ui(emitmodeID, emitmode);
+
+				drawBuffers();
+
+				//
+				comp = 13;
+				glUniform1ui(componentID, comp);
+
+				//////////////////////////////////////////////////////////////////////
+				//LINES TO COME BACK FROM REFLECTOR
+
+				line_vertex[0] = convpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+				line_vertex[1] = -5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
+				line_vertex[2] = convpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+
+				line_vertex[3] = convrefx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
+				//MUST BE GREATER THAN line_vertex[1]
+				line_vertex[4] = -6.18f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
+				line_vertex[5] = convrefz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+
+
+				drawBuffers();
+
+
+				//////////////////////////////////////////////////////////////////////
+				//LINES THROUGH RATCHET BACK TO PINS
+
+				line_vertex[0] = convpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+				line_vertex[1] = 0.0f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
+				line_vertex[2] = convpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+
+				line_vertex[3] = convpinx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
+				//MUST BE GREATER THAN line_vertex[1]
+				line_vertex[4] = -5.3f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
+				line_vertex[5] = convpinz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+
+
+				drawBuffers();
+
+				//CHANGE ALL THESE TO MAYBE COMP=LIGHTCOLOUR?
+				emitmode = 0;
+				glUniform1ui(emitmodeID, emitmode);
+
+
+				//////////////////////////////////////////////////////////////////////
+				//LINES BACK TO KEY
+
+				line_vertex[0] = convplatex;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
+				line_vertex[1] = 5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
+				line_vertex[2] = convplatez;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+
+				line_vertex[3] = convplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
+				//MUST BE GREATER THAN line_vertex[1]
+				line_vertex[4] = 2.1f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
+				line_vertex[5] = convplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+
+
+				drawBuffers();
+
+				//CHANGE ALL THESE TO MAYBE COMP=LIGHTCOLOUR?
+				emitmode = 0;
+				glUniform1ui(emitmodeID, emitmode);
+
+				count = 0.0f;
+				countpin = 0.0f;
+
+				refcount = 0.0f;
+				pincountv = 0.0f;
+				platecountv = 0.0f;
+
 			}
-
-			for (int k = 0; k < refcount + 1; k++)
-			{
-				convrefx += pinx[k];
-				convrefz += pinz[k];
-			}
-
-			for (int l = 0; l < pincountv + 1; l++)
-			{
-				convpinx += pinx[l];
-				convpinz += pinz[l];
-			}
-
-			for (int m = 0; m < i + 1; m++)
-			{
-				newnumplatex += platex[m];
-				newnumplatez += platez[m];
-			}
-
-			for (int n = 0; n < countpin + 1; n++)
-			{
-				newnumpinx += pinx[n];
-				newnumpinz += pinz[n];
-			}
-
-			for (int o = 0; o < count + 1; o++)
-			{
-				newnumrefx += pinx[o];
-				newnumrefz += pinz[o];
-			}
-			//////////////////////////////////////////////////////////////////////
-			//LINES FOR THE VERY START
-
-			line_vertex[0] = newnumplatex;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-			line_vertex[1] = 5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-			line_vertex[2] = newnumplatez;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-			line_vertex[3] = newnumplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-			//MUST BE GREATER THAN line_vertex[1]
-			line_vertex[4] = 2.1f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-			line_vertex[5] = newnumplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
-			emitmode = 1;
-			glUniform1ui(emitmodeID, emitmode);
-
-			drawBuffers();
-
-			//THROUGH TO REFLECTOR
-			line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-			line_vertex[1] = 0.0f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-			line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-			
-			line_vertex[3] = newnumpinx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-			line_vertex[4] = -5.3f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-			line_vertex[5] = newnumpinz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
-			//line_vertex[6] = newnumrefx;
-			//line_vertex[7] = 1.3f;
-			//line_vertex[8] = newnumrefz;
-			
-			emitmode = 1;
-			glUniform1ui(emitmodeID, emitmode);
-
-			drawBuffers();
-			//////////////////////////////////////////////////////////////////////
-			//LINES FROM RATCHET TO REFLECTOR
-
-			line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-			line_vertex[1] = -5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-			line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-			
-			line_vertex[3] = newnumrefx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-			//MUST BE GREATER THAN line_vertex[1]
-			line_vertex[4] = -6.18f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-			line_vertex[5] = newnumrefz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-			
-			emitmode = 1;
-			glUniform1ui(emitmodeID, emitmode);
-
-			drawBuffers();
-
-			//
-			comp = 13;
-			glUniform1ui(componentID, comp);
-
-			//////////////////////////////////////////////////////////////////////
-			//LINES TO COME BACK FROM REFLECTOR
-
-			line_vertex[0] = convpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-			line_vertex[1] = -5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-			line_vertex[2] = convpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-			line_vertex[3] = convrefx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-			//MUST BE GREATER THAN line_vertex[1]
-			line_vertex[4] = -6.18f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-			line_vertex[5] = convrefz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
-			
-			drawBuffers();
-			
-
-			//////////////////////////////////////////////////////////////////////
-			//LINES THROUGH RATCHET BACK TO PINS
-
-			line_vertex[0] = convpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-			line_vertex[1] = 0.0f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-			line_vertex[2] = convpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-			line_vertex[3] = convpinx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-			//MUST BE GREATER THAN line_vertex[1]
-			line_vertex[4] = -5.3f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-			line_vertex[5] = convpinz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
-
-			drawBuffers();
-
-			//CHANGE ALL THESE TO MAYBE COMP=LIGHTCOLOUR?
-			emitmode = 0;
-			glUniform1ui(emitmodeID, emitmode);
-
-
-			//////////////////////////////////////////////////////////////////////
-			//LINES BACK TO KEY
-
-			line_vertex[0] = convplatex;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-			line_vertex[1] = 5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-			line_vertex[2] = convplatez;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-			line_vertex[3] = convplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-			//MUST BE GREATER THAN line_vertex[1]
-			line_vertex[4] = 2.1f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-			line_vertex[5] = convplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
-
-			drawBuffers();
-
-			//CHANGE ALL THESE TO MAYBE COMP=LIGHTCOLOUR?
-			emitmode = 0;
-			glUniform1ui(emitmodeID, emitmode);
-
-			count = 0.0f;
-			countpin = 0.0f;
-
-			refcount = 0.0f;
-			pincountv = 0.0f;
-			platecountv = 0.0f;
-
 		}
-	}
 	
 
 }
@@ -1096,79 +1101,114 @@ GLuint mapAlphabet(int number, int type)
 	char reflect = ' ';
 	GLint character = 0;
 	std::size_t newchar;
+	/*number += 1;
+	if (number == 25)
+	{
+		number = 0;
+	}*/
+	
 	switch (type)
 	{
 	case 0: //MAPS WIRES PIN TO PIN
-		letter = glw->getStaticrOne().at(number);
-		newchar = glw->getAlphabet().find(letter, 0);
-		character = newchar;
-		break;
-	
-	case 1: //MAPS PIN TO REFLECTOR
-		letter = glw->getStaticrOne().at(number);
-		newchar = glw->getAlphabet().find(letter, 0);
+			/*number -= 1;
+			if (number == -1)
+			{
+				number = 25;
+			}*/
+			letter = glw->getStaticrOne().at(number);
+			newchar = glw->getAlphabet().find(letter, 0);
+			character = newchar;
+			break;
 
-		reflect = glw->getAlphabet().at(newchar);
-		newchar = glw->getReflector().find(reflect, 0);
-		
-		character = newchar;
-		break;
+	case 1: //MAPS PIN TO REFLECTOR
+		if (glw->mode == "En")
+		{
+			
+			newchar = glw->getReflector().find(glw->char_rOne, 0);
+			//std::cout << letter << " | " << newchar << std::endl;
+
+			character = newchar;
+			break;
+		}
+		else if (glw->mode == "De")
+		{
+			newchar = glw->getReflector().find(glw->char_rOne, 0);
+			//std::cout << letter << " | " << newchar << std::endl;
+
+			character = newchar;
+			break;
+		}
 
 	case 2: //POINT ON REFLECTOR
-		letter = glw->getStaticrOne().at(number);
-		newchar = glw->getAlphabet().find(letter, 0);//4 AND E
+		if (glw->mode == "En")
+		{
+			newchar = glw->getReflector().find(glw->char_reflect, 0);
+			//std::cout << reflect << " | " << newchar << std::endl;
 
-		//GETS LETTER OF THAT INDEX
-		reflect = glw->getAlphabet().at(newchar);//E
-		newchar = glw->getReflector().find(reflect, 0); //16
+			character = newchar;
+			break;
+		}
+		else if (glw->mode == "De")
+		{
+			newchar = glw->getReflector().find(glw->char_inrOne, 0);
+			//std::cout << letter << " | " << newchar << std::endl;
 
-		reflect = glw->getAlphabet().at(newchar);//Q
-		newchar = glw->getReflector().find(reflect, 0); //4
-
-		
-		character = newchar;
-		break;
+			character = newchar;
+			break;
+		}
 
 	case 3: //REFLECTOR MAPPED BACK TO PINS
-		letter = glw->getStaticrOne().at(number);
-		newchar = glw->getAlphabet().find(letter, 0);
+		if (glw->mode == "En")
+		{
+			
+			//newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			letter = glw->getStaticrOne().at(newchar);
+			newchar = glw->getAlphabet().find(letter, 0);
 
-		reflect = glw->getAlphabet().at(newchar);
-		newchar = glw->getReflector().find(reflect, 0);
+			//letter = glw->char_reflect;
+			//newchar = glw->st_newchar;
+			//std::cout << letter << " | " << newchar << std::endl;
 
-		reflect = glw->getAlphabet().at(newchar);
-		newchar = glw->getReflector().find(reflect, 0);
+			character = newchar;
+			break;
+		}
+		else if (glw->mode == "De")
+		{
 
-		newchar = glw->getAlphabet().find(reflect, 0); //16
-		letter = glw->getStaticrOne().at(newchar); //X
-		newchar = glw->getAlphabet().find(letter, 0);//23
-		//std::cout << letter << " | " << newchar << std::endl;
+			//newchar = glw->getRotorOne().find(glw->char_letter, 0);
+			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			letter = glw->getStaticrOne().at(newchar);
+			newchar = glw->getAlphabet().find(letter, 0);
 
-		character = newchar;//MUST BE 24
-		break;
+			//std::cout << letter << " | " << newchar << std::endl;
+
+			character = newchar;
+			break;
+		}
 
 	case 4: //FINAL CIPHERED KEY
-		letter = glw->getStaticrOne().at(number);
-		newchar = glw->getAlphabet().find(letter, 0);
+		if (glw->mode == "En")
+		{
+			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			//std::cout << letter << " | " << newchar << std::endl;
 
-		reflect = glw->getAlphabet().at(newchar);
-		newchar = glw->getReflector().find(reflect, 0);
+			glw->platechange[newchar] = true;
 
-		reflect = glw->getAlphabet().at(newchar);
-		newchar = glw->getReflector().find(reflect, 0);
+			character = newchar;
+			break;
+		}
+		else if (glw->mode == "De")
+		{
+			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			glw->platechange[newchar] = true;
 
-		newchar = glw->getAlphabet().find(reflect, 0); //16
-		letter = glw->getStaticrOne().at(newchar); //X
-		newchar = glw->getAlphabet().find(letter, 0);//23
+			//std::cout << letter << " | " << newchar << std::endl;
 
-		letter = glw->getAlphabet().at(newchar);
-		newchar = glw->getStaticrOne().find(letter, 0);
-		glw->platechange[newchar] = true;
+			character = newchar;
+			break;
+		}
 
-		//std::cout << letter << " | " << newchar << std::endl;
-
-		character = newchar;
-		break;
 
 	default:
 		break;
