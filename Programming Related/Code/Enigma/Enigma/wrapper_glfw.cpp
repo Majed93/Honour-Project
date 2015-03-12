@@ -44,6 +44,8 @@ GLWrapper::GLWrapper(int width, int height, char *title) {
 	complete = false;
 	changed = new bool[25];
 	platechange = new bool[25];
+	//rotors = new std::string[8];
+	//reflectors = new std::string[8];
 	reset();
 	/* Initialise GLFW and exit if it fails */
 	if (!glfwInit()) 
@@ -126,23 +128,50 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		glfwPollEvents();
 		UpdateImGui(mousePressed);
 		
-
-		 
 		static bool show_main = true;
 		static bool show_encrypt = false;
 		static bool show_decrypt = false;
 		static bool show_exit = false;
+		static bool show_help = false;
 		static bool no_titlebar = true;
 		static bool no_border = true;
 		static bool no_resize = true;
 		static bool no_move = true;
 		static bool no_scrollbar = true;
+		static bool help_notitlebar = false;
+		static bool help_nomove = false;
+		static bool help_noscrollbar = false;
+
 		static float fill_alpha = 0.65f;
 
+		const char* rotorno[] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII" };
+		
+		const char* reflectorno[] = { "Beta", "Gamma", "Reflector A", "Reflector B", "Reflector C" };
+		
+		ImGuiStyle style;
+
 		const ImGuiWindowFlags layout_flags = (no_titlebar ? ImGuiWindowFlags_NoTitleBar : 0) | (no_border ? 0 : ImGuiWindowFlags_ShowBorders) | (no_resize ? ImGuiWindowFlags_NoResize : 0) | (no_move ? ImGuiWindowFlags_NoMove : 0) | (no_scrollbar ? ImGuiWindowFlags_NoScrollbar : 0);
+		const ImGuiWindowFlags help_flags = (help_notitlebar ? ImGuiWindowFlags_NoTitleBar : 0) | (no_border ? 0 : ImGuiWindowFlags_ShowBorders) | (no_resize ? ImGuiWindowFlags_NoResize : 0) | (help_nomove ? ImGuiWindowFlags_NoMove : 0) | (help_noscrollbar ? ImGuiWindowFlags_NoScrollbar : 0);
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleColor(ImGuiCol_Button, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 1.0f)));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
+
 
 		if (show_main == true)
 		{
+			if (!resized)
+			{
+				width = 400;
+				height = 300;
+				glfwSetWindowSize(window, width, height);
+				const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+				glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
+				resized = true;
+			}
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2((width / 2) - 50 - style.WindowPadding.x, (height / 4) + style.WindowPadding.y));
+
 			mode = "";
 			show_encrypt = false;
 			show_decrypt = false;
@@ -150,49 +179,115 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			if (!complete)
 			{
 				reset();
-				
 			}
+
 			ImGui::Begin("", &show_main, ImVec2(100, 100), fill_alpha, layout_flags);
 			title = "Graphical Enigma Simulator - Main Menu";
-
-			ImGui::SetWindowPos(ImVec2(0, 0), 0);
+			ImGui::SetWindowPos(ImVec2(0,0), 0);
 			ImGui::SetWindowSize(ImVec2(width, height), 0);
-			//FIX ROUNDED EDGES
-			ImGuiStyle style;
-			style.WindowRounding = 5.1f;
+
+		
+			show_encrypt ^= ImGui::Button("Encrypt", ImVec2(100, 25));// , ImVec2(60, 20), true);
+			show_decrypt ^= ImGui::Button("Decrypt", ImVec2(100, 25));
+			show_exit ^= ImGui::Button("Exit", ImVec2(100, 25));
 			
-			ImGui::PushStyleColor(ImGuiCol_Button, ImColor::HSV(0.2f, 0.2f, 0.2f));
-			show_encrypt ^= ImGui::Button("Encrypt");// , ImVec2(60, 20), true);
-			show_decrypt ^= ImGui::Button("Decrypt");
-			show_exit ^= ImGui::Button("Exit");
-			ImGui::PopStyleColor();
+
 			ImGui::End();
+			ImGui::PopStyleVar();
+
 		}
 
 		//Show Encryption screen
 		if (show_encrypt == true)
 		{
+			if (complete == true)
+			{
+				resized = false;
+			}
+			if (!resized)
+			{
+				width = 800;
+				height = 500;
+				glfwSetWindowSize(window, width, height);
+				const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+				glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
+				resized = true;
+			}
 			mode = "En";
 			
 			show_main = false;
-			ImGui::Begin("Encrypt", &show_main, ImVec2(100, 100), fill_alpha, layout_flags);
+			ImGui::Begin("Encrypt", &show_encrypt, ImVec2(100, 100), fill_alpha, layout_flags);
 			//no_titlebar = false;
 			title = "Graphical Enigma Simulator - Encrypt";
-			ImGui::SetWindowPos(ImVec2(0, 350), 0);
-			ImGui::SetWindowSize(ImVec2(width, height - 250), 0);
+			
+			ImGui::SetWindowPos(ImVec2(0, height * 0.72f), 0);
+			ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
 
+			/*WAS TRYING TO GET ZOOM ON MOUSE OVER MAYBE TRY LATER?
+			ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
+
+			struct Num{
+				static inline float  ImClamp(float v, float mn, float mx)                       { return (v < mn) ? mn : (v > mx) ? mx : v; }
+
+			};
+
+			float focus_sz = 16.0f;//LOWER THE MORE ZOOM
+			float tex_w = (float)ImGui::GetIO().Fonts->TexWidth;
+			float tex_h = (float)ImGui::GetIO().Fonts->TexHeight;
+			ImTextureID tex_id = ImGui::GetWindowDrawList;
+
+			ImGui::BeginTooltip();
+
+			float focus_x = Num::ImClamp(ImGui::GetMousePos().x - tex_screen_pos.x - focus_sz * 0.5f, 0.0f, tex_w - focus_sz);
+			float focus_y = Num::ImClamp(ImGui::GetMousePos().y - tex_screen_pos.y - focus_sz * 0.5f, 0.0f, tex_h - focus_sz);
+			ImGui::Text("Min: (%.2f, %.2f)", focus_x, focus_y);
+			ImGui::Text("Max: (%.2f, %.2f)", focus_x + focus_sz, focus_y + focus_sz);
+			ImVec2 uv0 = ImVec2((focus_x) / tex_w, (focus_y) / tex_h);
+			ImVec2 uv1 = ImVec2((focus_x + focus_sz) / tex_w, (focus_y + focus_sz) / tex_h);
+			ImGui::Image(tex_id, ImVec2(50, 50), uv0, uv1, ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 128));
+			ImGui::EndTooltip();
+			*/
+			
 			show_main ^= ImGui::Button("Back To Main Menu");
+			ImGui::SameLine();
+			show_help ^= ImGui::Button("Help");
 
 			ImGui::Text("Rotor #");
+
 			ImGui::SameLine();
 			ImGui::Spacing();
 			ImGui::SameLine();
+
 			ImGui::PushItemWidth(200);
-			const char* items[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK" };
-			static int item2 = -1;
-			ImGui::Combo("", &item2, items, IM_ARRAYSIZE(items));
+			ImGui::Combo(" ", &combopos1, rotorno, IM_ARRAYSIZE(rotorno), 4);
 			ImGui::PopItemWidth();
 
+			if (combopos1 != prev1)
+			{
+				setRotorOne(rotors[combopos1]);
+				setStaticrOne(rotors[combopos1]);
+				prev1 = combopos1;
+			}
+
+			ImGui::SameLine();
+			ImGui::Text("  ");
+			ImGui::SameLine();
+
+			ImGui::Text("Reflector #");
+
+			ImGui::SameLine();
+			ImGui::Spacing();
+			ImGui::SameLine();
+
+			ImGui::PushItemWidth(200);
+			ImGui::Combo("", &combopos2, reflectorno, IM_ARRAYSIZE(reflectorno), 4);
+			ImGui::PopItemWidth();
+
+			if (combopos2 != prev2)
+			{
+				setRelfector(reflectors[combopos2]);
+				prev2 = combopos2;
+			}
 			static float wrap_width = 10.0f;
 			
 			ImGui::PushItemWidth(width - 25);
@@ -222,27 +317,33 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 				ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
 			
-				/*ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::BeginTooltip();
-				float focus_sz = 32.0f;
-				float focus_x = ImClamp(ImGui::GetMousePos().x - tex_screen_pos.x - focus_sz * 0.5f, 0.0f, tex_w - focus_sz);
-				float focus_y = ImClamp(ImGui::GetMousePos().y - tex_screen_pos.y - focus_sz * 0.5f, 0.0f, tex_h - focus_sz);
-				ImGui::EndTooltip();
-			}*/
+			
 			ImGui::Text("Cipher Text");
 			
-			ImGuiStyle style;
 			style.ItemInnerSpacing.x = 10.f;
 			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f), ImVec2(wrap_width + width, ImGui::GetTextLineHeight()), 0xff808080);
 			ImGui::Text(encrypted.c_str());
 			
-			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, 475.0f), 0xff808080);
+			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, height - 15.0f), 0xff808080);
 			ImGui::PopItemWidth();
-			
+
+			//FIX BACKSPACE
+			if (strlen(strPlain) > 0)
+			{
+				if ((encrypted.length()!= strlen(strPlain)))
+				{
+					encrypted.pop_back();
+				}
+			}
+			//SPECIAL CASE
+			if (strlen(strPlain) < 1 && encrypted != "")
+			{
+				encrypted.pop_back();
+			}
+
 			complete = false;
-			
+
+
 			ImGui::End();
 		}
 
@@ -250,33 +351,76 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		//Show Decryption screen
 		if (show_decrypt == true)
 		{
+
+			if (complete == true)
+			{
+				resized = false;
+			}
+
+			if (!resized)
+			{
+				width = 800;
+				height = 500;
+				glfwSetWindowSize(window, width, height);
+				const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+				glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
+				resized = true;
+			}
 			mode = "De";
 			show_main = false;
 
-			show_main = false;
-			ImGui::Begin("", &show_main, ImVec2(100, 100), fill_alpha, layout_flags);
+			ImGui::Begin("", &show_decrypt, ImVec2(100, 100), fill_alpha, layout_flags);
 			title = "Graphical Enigma Simulator - Decrypt";
+			
 			ImGui::SetWindowPos(ImVec2(0, 350), 0);
 			ImGui::SetWindowSize(ImVec2(width, height - 250), 0);
 
 			show_main ^= ImGui::Button("Back To Main Menu");
+			ImGui::SameLine();
+			show_help ^= ImGui::Button("Help");
 
 			ImGui::Text("Rotor #");
+
 			ImGui::SameLine();
 			ImGui::Spacing();
 			ImGui::SameLine();
+
 			ImGui::PushItemWidth(200);
-			const char* items[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK" };
-			static int item2 = -1;
-			ImGui::Combo("", &item2, items, IM_ARRAYSIZE(items));
+			ImGui::Combo(" ", &combopos1, rotorno, IM_ARRAYSIZE(rotorno), 4);
 			ImGui::PopItemWidth();
+
+			if (combopos1 != prev1)
+			{
+				setRotorOne(rotors[combopos1]);
+				setStaticrOne(rotors[combopos1]);
+				prev1 = combopos1;
+			}
+
+			ImGui::SameLine();
+			ImGui::Text("  ");
+			ImGui::SameLine();
+
+			ImGui::Text("Reflector #");
+
+			ImGui::SameLine();
+			ImGui::Spacing();
+			ImGui::SameLine();
+
+			ImGui::PushItemWidth(200);
+			ImGui::Combo("", &combopos2, reflectorno, IM_ARRAYSIZE(reflectorno), 4);
+			ImGui::PopItemWidth();
+
+			if (combopos2 != prev2)
+			{
+				setRelfector(reflectors[combopos2]);
+				prev2 = combopos2;
+			}
 
 			static float wrap_width = 10.0f;
 
 			ImGui::PushItemWidth(width - 25);
 			ImGui::Text("Plain Text");
 
-			ImGuiStyle style;
 			style.ItemInnerSpacing.x = 10.f;
 			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f), ImVec2(wrap_width + width, ImGui::GetTextLineHeight()), 0xff808080);
 			ImGui::Text(decrypted.c_str());
@@ -309,17 +453,102 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
 			ImGui::PopItemWidth();
 
-			complete = false;
+			//FIX BACKSPACE
+			if (strlen(strCipher) > 0)
+			{
+				if ((decrypted.length() != strlen(strCipher)))
+				{
+					decrypted.pop_back();
+				}
+			}
+			//SPECIAL CASE
+			if (strlen(strCipher) < 1 && decrypted != "")
+			{
+				decrypted.pop_back();
+			}
 
+			complete = false;
+			
 			ImGui::End();
 		}
+
+		if (show_help == true)
+		{
+			ImGui::PushStyleColor(ImGuiCol_TitleBg, ImColor::ImColor(ImVec4(0.15f, 0.15f, 0.15f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButton, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
+
+
+			help_notitlebar = false;
+			help_nomove = false;
+			help_noscrollbar = false;
+
+			ImGui::Begin("Help", &show_help, ImVec2(300, 250), 0.95f, help_flags);
+			
+			ImGui::SetWindowSize(ImVec2(300, 250), 0);
+
+			ImGui::TextWrapped("Graphical Enigma Simulator.");
+
+			ImGui::Spacing();
+
+			ImGui::TextWrapped("This simulation shows encryption and decryption through only one rotor. Input shall be auto capitalised.");
+			
+			ImGui::Spacing();
+			
+			ImGui::TextWrapped("Process explained: ");
+
+			ImGui::Spacing();
+
+			ImGui::TextWrapped("Once a letter pressed, it is passed to the pins which then map to the corresponding pins, depending on the rotor setting. Once passed through the pins, it is then passed to the reflector where it will be mapped to the reflector and passed back to the pins. Once passed back to the pins, the decrypted letter can then be calculate. ");
+
+			ImGui::Spacing();
+
+			ImGui::TextWrapped("The green wire represents the path of the letter you have pressed up until the reflector, where it is then crossed over and the path is returned, shown by the red wiring.");
+
+			ImGui::Spacing();
+
+			ImGui::TextWrapped("The rotor automatically rotates once you press a letter by click, and also reverse upon backspace. Please note that the rotor does take a few seconds to rotate each click therefore if many letters are entered in a short amount of time, there may be a delay in the rotor completing its rotation");
+
+			ImGui::Spacing();
+
+			ImGui::TextWrapped("The only controls available are the movements of the camera.");
+			
+			ImGui::Spacing();
+
+			ImGui::TextWrapped("Controls");
+			ImGui::TextWrapped("Arrow Keys - Left: Move view left (Camera anti-clockwise around y-axis) ");
+			ImGui::TextWrapped("Arrow Keys - Right: Move view right (Camera clockwise around y-axis)");
+			ImGui::TextWrapped("Arrow Keys - Up: Move view up");
+			ImGui::TextWrapped("Arrow Keys - Down: Move view down");
+			ImGui::TextWrapped("Numbers - 1: Rotate rotor clockwise");
+			ImGui::TextWrapped("Numbers - 2: Rotate rotor anti-clockwise");
+			ImGui::TextWrapped("Numbers - 3: Move camera around right");
+			ImGui::TextWrapped("Numbers - 4: Move camera around left");
+			ImGui::TextWrapped("Numbers - 5: Move camera around up");
+			ImGui::TextWrapped("Numbers - 6: Move camera around down");
+			ImGui::TextWrapped("Numbers - 7: Zoom out");
+			ImGui::TextWrapped("Numbers - 8: Zoom in");
+			ImGui::TextWrapped("Numbers - 9: Move left");
+			ImGui::TextWrapped("Numbers - 0: Move right");
+			ImGui::TextWrapped("Left Square Bracket ('['): Move up");
+			ImGui::TextWrapped("Right Square Bracket (']'): Move down");
+
+
+			ImGui::End();
+			ImGui::PopStyleColor(4);
+
+		}
+
 		//Exit Application
 		if(show_exit == true){
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
 		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glfwSetWindowTitle(window, title);
 		ImGui::Render();
@@ -330,6 +559,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 	glfwTerminate();
 	return 0;
 }
+
 
 void GLWrapper::swap()
 {
@@ -583,14 +813,14 @@ void GLWrapper::Encrypt(char k)
 	//std::cout << "letter index:" << machine.getIndex(k) << std::endl;
 	//std::cout << "cipher letter:" << getCiphered(machine.getIndex(k)) << std::endl;
 	getCiphered(machine.getIndex(k));
-	machine.offset();
+	machine.offset(1);
 	count += 1;
 }
 
 void GLWrapper::Decrypt(char k)
 {
 	getPlain(machine.getIndex(k), k);
-	machine.offset();
+	machine.offset(1);
 	count += 1;
 }
 
@@ -598,6 +828,7 @@ int GLWrapper::getIndex(char k)
 {
 	return machine.getIndex(k);
 }
+
 char GLWrapper::getCiphered(int index)
 {
 	for (int i = 0; i < 26; i++)
@@ -605,7 +836,6 @@ char GLWrapper::getCiphered(int index)
 		changed[i] = false;
 		platechange[i] = false;
 	}
-	//changenum = count;
 	
 	int totalindex = index + changenum;
 	if (totalindex > 25)
@@ -614,7 +844,6 @@ char GLWrapper::getCiphered(int index)
 	}
 	changed[totalindex] = true;
 
-	std::cout << "index " << totalindex << std::endl;
 
 	char_rOne = getRotorOne().at(index);
 	char_reflect = getReflector().at(machine.getIndex(char_rOne));
@@ -622,10 +851,11 @@ char GLWrapper::getCiphered(int index)
 	char_letter = machine.getAlphabet().at(st_newchar);
 	encrypted += char_letter;// machine.getRotorOne().at(st_newchar);
 	
-	std::cout << "rone " << char_rOne << std::endl;//E//U
-	std::cout << "reflect " << char_reflect << std::endl;//Q//C
-	std::cout << "newrotor " << st_newchar << std::endl;//16//2
-	std::cout << "letter " << char_letter << std::endl;//X//K
+	//std::cout << "Encrypt - index " << totalindex << std::endl;
+	//std::cout << "rone " << char_rOne << std::endl;//E//U
+	//std::cout << "reflect " << char_reflect << std::endl;//Q//C
+	//std::cout << "newrotor " << st_newchar << std::endl;//16//2
+	//std::cout << "letter " << char_letter << std::endl;//X//K
 
 	return machine.getRotorOne().at(st_newchar);
 
@@ -640,17 +870,12 @@ char GLWrapper::getPlain(int index, char k)
 	}
 	changenum = count;
 
-	/*index = machine.getStaticrOne().find(k, 0);
-	char temp = machine.getAlphabet().at(index);
-	index = machine.getAlphabet().find(temp, 0);
-*/
 	int totalindex = index + changenum;
 	if (totalindex > 25)
 	{
 		totalindex -= 26;
 	}
-	//totalindex = 0;
-	std::cout << "index " << totalindex << std::endl;
+
 	changed[totalindex] = true;
 	
 	st_rotorone = machine.getRotorOne().find(k, 0);
@@ -661,12 +886,13 @@ char GLWrapper::getPlain(int index, char k)
 	char_letter = machine.getAlphabet().at(st_newchar);
 	decrypted += char_letter;// machine.getAlphabet().at(st_newchar);
 
-	std::cout << "newrotor " << st_rotorone << std::endl;//16//2
-	std::cout << "rOne " << char_rOne << std::endl;//Q//C
-	std::cout << "newreflect " << st_newreflect << std::endl;//4//20
-	std::cout << "in rotor one " << char_inrOne << std::endl;//E//U
-	std::cout << "Rotor one index " << st_newchar << std::endl;//0//18
-	std::cout << "letter " << char_letter << std::endl;//A
+	//std::cout << "Decrypt - index " << totalindex << std::endl;
+	//std::cout << "newrotor " << st_rotorone << std::endl;//16//2
+	//std::cout << "rOne " << char_rOne << std::endl;//Q//C
+	//std::cout << "newreflect " << st_newreflect << std::endl;//4//20
+	//std::cout << "in rotor one " << char_inrOne << std::endl;//E//U
+	//std::cout << "Rotor one index " << st_newchar << std::endl;//0//18
+	//std::cout << "letter " << char_letter << std::endl;//A
 
 	
 	return machine.getIndex(st_newchar);
@@ -689,7 +915,35 @@ void GLWrapper::reset()
 		strPlain[i] = '\0';
 		strCipher[i] = '\0';
 	}
-	setRotorOne(getStaticrOne());
+	std::string strRotorArray[] = { "EKMFLGDQVZNTOWYHXUSPAIBRCJ", 
+		"AJDKSIRUXBLHWTMCQGZNPYFVOE", 
+		"BDFHJLCPRTXVZNYEIWGAKMUSQO",
+		"ESOVPZJAYQUIRHXLNFTGKDCMWB",
+		"VZBRGITYUPSDNHLXAWMJQOFECK",
+		"JPGVOUMFYQBENHZRDKASXLICTW",
+		"NZJHGRCXMYSWBOUFAIVLPEKQDT",
+		"FKQHTLXOCBJSPDZRAMEWNIUYGV" };
+	
+	std::string strReflectorArray[] = {"LEYJVCNIXWPBQMDRTAKZGFUHOS",
+	"FSOKANUERHMBTIYCWLQPZXVGJD",
+	"EJMZALYXVBWFCRQUONTSPIKHGD",
+	"YRUHQSLDPXNGOKMIEBFZCWVJAT",
+	"FVPJIAOYEDRZXWGCTKUQSBNMHL" };
+
+	for (int i = 0; i < 7; i++)
+	{
+		rotors[i] = strRotorArray[i];
+		if (i < 5)
+		{
+			reflectors[i] = strReflectorArray[i];
+		}
+	}
+	prev1, combopos1 = 0;
+	prev2, combopos2 = 3;
+
+	setRotorOne(rotors[combopos1]);
+	setStaticrOne(rotors[combopos1]);
+	setRelfector(reflectors[combopos2]);
 	rotation, introtation = 0.0f;
 	st_rotorone = 0;
 	char_rOne = ' ';
@@ -699,5 +953,6 @@ void GLWrapper::reset()
 	char_inrOne = ' ';
 	st_newchar = 0;
 	complete = true;
+	resized = false;
 }
 

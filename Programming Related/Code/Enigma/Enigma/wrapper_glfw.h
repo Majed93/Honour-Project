@@ -47,10 +47,12 @@ private:
 	void(*chars)(GLFWwindow* window, unsigned int c);
 	bool running;
 	GLFWwindow* window;
-	enigma machine;
+	
 public:
 	GLWrapper(int width, int height, char *title);
 	~GLWrapper();
+
+	enigma machine;
 
 	void setFPS(double fps) {
 		this->fps = fps;
@@ -90,9 +92,11 @@ public:
 	std::string mode;
 	int width;
 	int height;
-	
+	bool resized;
+
 	char strPlain[70];
 	char strCipher[70];
+
 	int count;
 	std::string rotorOne;
 	std::string encrypted;
@@ -113,10 +117,15 @@ public:
 	char char_inrOne;
 	std::size_t st_newchar;
 
+	std::string rotors[7];
+	std::string reflectors[5];
 
+	int combopos1, combopos2;
+	int prev1, prev2;
 	void Encrypt(char k);
 	void Decrypt(char k);
 	void reset();
+
 };
 
 

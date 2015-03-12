@@ -61,21 +61,23 @@ GLfloat pi = 3.141592;
 GLfloat slice = 2 * pi / 26;
 GLuint numpoints = 2;
 GLfloat rotationinc = 0.1f;
+
 GLuint count, countpin, refcount, pincountv, platecountv = 0.0f;
 GLfloat newnumplatez, newnumpinx, newnumpinz, newnumplatex, newnumrefz, newnumrefx = 0.0f;
 GLfloat convplatex, convplatez, convpinx, convpinz, convrefx, convrefz = 0.0f;
+
 std::size_t newcount;
 GLfloat* line_vertex;
 GLboolean done = false;
 /* Uniforms*/
-GLuint modelID, viewID, projectionID, lightposID, normalmatrixID, componentID, color1ID, color2ID, color3ID, emitmodeID;
-glm::mat4 model;
-GLuint comp, emitmode;
-GLfloat color1[26], color2[26], color3[26];
+GLuint modelID, viewID, projectionID, normalmatrixID, lightposID, componentID, color1ID, color2ID, color3ID, color4ID, emitmodeID;
+glm::mat4 model, view;
 
+GLuint comp, emitmode;
+GLfloat color4;
 GLfloat aspect_ratio;		/* Aspect ratio of the window defined in the reshape callback*/
 
-static GLWrapper *glw = new GLWrapper(800, 500, "Graphical Enigma Simulator - Main Menu");
+static GLWrapper *glw = new GLWrapper(400, 300, "Graphical Enigma Simulator - Main Menu");
 
 static GLFWwindow* window;
 static GLuint fontTex;
@@ -108,9 +110,9 @@ void createObjects();
 void drawBuffers();
 void createBuffers();
 void calculateXZ();
-GLfloat bezier(float A, float B, float C, float D, float t);
+void illuminate();
 GLuint mapAlphabet(int number,int type);
-
+void set_linevertex(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2);
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - try adjusting ImGui::GetIO().PixelCenterOffset to 0.0f or 0.5f
@@ -209,12 +211,14 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
 void display() {
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	/* Define the background colour */
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 
 	/* Clear the colour and frame buffers */
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -251,7 +255,7 @@ void display() {
 
 	glm::mat4 projection = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
 
-	glm::mat4 view = glm::lookAt(
+	view = glm::lookAt(
 		glm::vec3(vx, vy, vz),
 		glm::vec3(cx, cy, cz),
 		glm::vec3(0, 1, 0)
@@ -275,6 +279,7 @@ void display() {
 	glUniformMatrix3fv(normalmatrixID, 1, GL_FALSE, &normalmatrix[0][0]);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
+
 	
 	drawObjects();
 
@@ -284,6 +289,7 @@ void display() {
 	glUseProgram(0);
 	glBindVertexArray(0);
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
 
 	/* Modify our animation variables */
 	
@@ -309,14 +315,14 @@ static void reshape(GLFWwindow* window, int w, int h)
 	aspect_ratio = ((float)w / 1280.f*4.f) / ((float)h / 960.f*3.f);
 }
 
-/* change view angle, exit upon ESC */
+/* change camera, exit upon ESC */
 static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 {
 	//if (action != GLFW_PRESS) return;
 
-	if (k == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	/*if (k == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-
+*/
 	//64 and 90 are all alphabet values
 	if (k > 64 && k < 91 && action == GLFW_PRESS)
 	{
@@ -345,21 +351,25 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 			if (glw->mode == "En")
 			{
 				glw->encrypted.erase(glw->encrypted.end() - 1);
+				glw->machine.offset(-1);
+				glw->count--;
 			}
 			else if (glw->mode == "De")
 			{
 				glw->decrypted.erase(glw->decrypted.end() - 1);
+				glw->machine.offset(-1);
+				glw->count--;
 			}
 		}
 	}
 	
-	if (k == GLFW_KEY_LEFT) angle_y += 0.5f;
+	if (k == GLFW_KEY_LEFT) angle_y -= 0.5f;
 
-	if (k == GLFW_KEY_RIGHT) angle_y -= 0.5f;
+	if (k == GLFW_KEY_RIGHT) angle_y += 0.5f;
 
-	if (k == GLFW_KEY_UP) angle_x += 0.5f;
+	if (k == GLFW_KEY_UP) angle_x -= 0.5f;
 
-	if (k == GLFW_KEY_DOWN) angle_x -= 0.5f;
+	if (k == GLFW_KEY_DOWN) angle_x += 0.5f;
 
 	if (k == GLFW_KEY_1) angle_z += 0.75f;
 	
@@ -381,30 +391,15 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 
 	if (k == GLFW_KEY_0) cx -= 0.1f;
 
-	if (k == GLFW_KEY_KP_ADD) cy += 0.1f;
+	//THESE ARE SAME AS cz, MOVING UP AND DOWN
+	//if (k == GLFW_KEY_COMMA) cy += 0.1f;
 
-	if (k == GLFW_KEY_KP_SUBTRACT) cy -= 0.1f;
+	//if (k == 46) cy -= 0.1f;// '.' DOT
 
 	if (k == GLFW_KEY_LEFT_BRACKET) cz += 0.1f;
 
 	if (k == GLFW_KEY_RIGHT_BRACKET) cz -= 0.1f;
 
-	/*if (k == 'Q') angle_x_inc += 0.1f;
-	if (k == 'W') angle_x_inc -= 0.1f;
-	if (k == 'A') angle_z_inc += 0.1f;
-	if (k == 'S') angle_z_inc -= 0.1f;
-	if (k == 'Z') angle_y_inc += 0.1f;
-	if (k == 'X') angle_y_inc -= 0.1f;
-
-	
-
-	if (k == GLFW_KEY_M) z_inc += 0.0001f;
-
-	if (k == GLFW_KEY_N) z_inc -= 0.0001f;
-
-	if (k == 'I') scale_inc += 0.0001f;
-	if (k == 'K') scale_inc -= 0.0001f;
-*/
 	ImGuiIO& io = ImGui::GetIO();
 	if (action == GLFW_PRESS)
 		io.KeysDown[k] = true;
@@ -433,7 +428,6 @@ static void glfw_char_callback(GLFWwindow* window, unsigned int c)
 		ImGui::GetIO().AddInputCharacter((unsigned short)c);
 }
 
-
 // GLFW callbacks to get events
 static void glfw_error_callback(int error, const char* description)
 {
@@ -445,57 +439,57 @@ void createObjects()
 {
 	//Notched Ring
 	notched_ring.load_obj("objects/notched_ring.obj");
-	//notched_ring.smoothNormals(); //Might not need this
+	notched_ring.smoothNormals(); //Might not need this
 	notched_ring.createObject();
 
 	//Contact
 	contact.load_obj("objects/contact.obj");
-	//contact.smoothNormals(); //Might not need this
+	contact.smoothNormals(); //Might not need this
 	contact.createObject();
 
 	//Alphabet Tyre
 	alphabet_tyre.load_obj("objects/alphabet_tyre.obj");
-	//alphabet_tyre.smoothNormals(); //Might not need this
+	alphabet_tyre.smoothNormals(); //Might not need this
 	alphabet_tyre.createObject();
 
 	//Plate contacts
 	plate_contacts.load_obj("objects/plate_contact.obj");
-	//plate_contacts.smoothNormals(); //Might not need this
+	plate_contacts.smoothNormals(); //Might not need this
 	plate_contacts.createObject();
 
 	//Pin contacts
 	pin_contact.load_obj("objects/pin_contact.obj");
-	//pin_contacts.smoothNormals(); //Might not need this
+	pin_contact.smoothNormals(); //Might not need this
 	pin_contact.createObject();
 	
 	//Spring-loaded lever
 	spring_loaded_lever.load_obj("objects/spring-loaded_lever.obj");
-	//spring_loaded_lever.smoothNormals(); //Might not need this
+	spring_loaded_lever.smoothNormals(); //Might not need this
 	spring_loaded_lever.createObject();
 
 	//Hub
 	hub.load_obj("objects/hub.obj");
-	//hub.smoothNormals(); //Might not need this
+	hub.smoothNormals(); //Might not need this
 	hub.createObject();
 
 	//Finger Wheel
 	finger_wheel.load_obj("objects/finger_wheel.obj");
-	//finger_wheel.smoothNormals(); //Might not need this
+	finger_wheel.smoothNormals(); //Might not need this
 	finger_wheel.createObject();
 
 	//Ratchet Wheel
 	ratchet_wheel.load_obj("objects/ratchet_wheel.obj");
-	//ratchet_wheel.smoothNormals(); //Might not need this
+	ratchet_wheel.smoothNormals(); //Might not need this
 	ratchet_wheel.createObject();
 
 	//Back contact
 	back_contact.load_obj("objects/back_contact.obj");
-	//back_contact.smoothNormals(); //Might not need this
+	back_contact.smoothNormals(); //Might not need this
 	back_contact.createObject();
 
 	//Reflector
 	reflector.load_obj("objects/reflector.obj");
-	//reflector.smoothNormals(); //Might not need this
+	reflector.smoothNormals(); //Might not need this
 	reflector.createObject();
 
 }
@@ -516,12 +510,20 @@ void drawObjects()
 	{
 		glw->introtation += rotationinc;
 	}
+	else if (glw->introtation > glw->rotation)
+	{
+		glw->introtation -= rotationinc;
+	}
 
 	model = glm::translate(model, glm::vec3(x, y + 5.5f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+
+	////////////////
+	glm::vec4 lightpos = view *  glm::vec4(0.5f, 0.5f, 7.0f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 	comp = 0;
 	glUniform1ui(componentID, comp);
-
 
 	notched_ring.drawObject();
 
@@ -531,14 +533,19 @@ void drawObjects()
 	comp = 1;
 	glUniform1ui(componentID, comp);
 
+	
 	notched_ring.drawObject();
+
+	////////////////
+	lightpos = view *  glm::vec4(0.75f, 1.75f, 5.5f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
 	//
 	model = glm::translate(model, glm::vec3(x, y - 0.5f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 	comp = 2;
 	glUniform1ui(componentID, comp);
-
+	
 	contact.drawObject();
 
 	//
@@ -548,6 +555,11 @@ void drawObjects()
 	glUniform1ui(componentID, comp);
 
 	alphabet_tyre.drawObject();
+
+
+	//////////////////
+	lightpos = view *  glm::vec4(1.75f, 2.5f, 3.5f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
 	//
 	model = glm::translate(model, glm::vec3(x - 0.2f, y - 1.f, z - 1.45f));
@@ -566,6 +578,11 @@ void drawObjects()
 
 	drawPins();
 
+	//
+
+	lightpos = view *  glm::vec4(0.0f, 1.5f, 0.0f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+	
 	model = glm::translate(model, glm::vec3(x, y + 0.45f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
@@ -600,35 +617,23 @@ void drawObjects()
 			newnumpinz += pinz[j];
 		}
 		
-		line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-		line_vertex[1] = 0.0f;// bezier(-0.01f, 0.0f, 1.0f, 2.5f, 0); //DOES NOTHING
-		line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+		set_linevertex(newnumpinx, 0.0f, newnumpinz, newnumplatex, 1.35f, newnumplatez);
 		
-		line_vertex[3] = newnumplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-		line_vertex[4] = 1.35f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-		line_vertex[5] = newnumplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-		
-		//line_vertex[6] = bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);  //DOES NOTHING
-		//line_vertex[7] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, 0); //DOES NOTHING
-		//line_vertex[8] =  bezier(0.01f, 0.0f, 0.0f, 0.02f, 0); //DOES NOTHING
-		comp = 12;
-
+		comp = 11;
+		glUniform1f(color4ID, 1.0f);
 		
 
 		if (glw->changed[i] == true)
 		{
-			glUniform1f(color1ID, 0.9f);
-			glUniform1f(color2ID, 0.9f);
-			glUniform1f(color3ID, 0.7f);
-			emitmode = 1;
-			glUniform1ui(emitmodeID, emitmode);
-
+			glUniform1f(color1ID, 0.0f);
+			glUniform1f(color2ID, 1.0f);
+			glUniform1f(color3ID, 0.0f);
 		}
 		else
 		{
-			glUniform1f(color1ID, 0.9f);
-			glUniform1f(color2ID, 0.1f);
-			glUniform1f(color3ID, 0.1f);
+			glUniform1f(color1ID, 0.2f);
+			glUniform1f(color2ID, 0.2f);
+			glUniform1f(color3ID, 0.9f);
 		}
 
 		if (glw->platechange[i] == true)
@@ -636,9 +641,6 @@ void drawObjects()
 			comp = 13;
 			glUniform1ui(componentID, comp);
 		}
-
-		emitmode = 0;
-		glUniform1ui(emitmodeID, emitmode);
 
 		glUniform1ui(componentID, comp);
 
@@ -648,6 +650,19 @@ void drawObjects()
 
 		drawBuffers();
 
+		if (glw->changed[i] == true)
+		{
+			comp = 12;
+			glUniform1ui(componentID, comp);
+			illuminate();
+		}
+		if (glw->platechange[i] == true)
+		{
+			comp = 13;
+			glUniform1ui(componentID, comp);
+			illuminate();
+
+		}
 		if (glw->changed[i] == true && glw->platechange[i] == true)
 		{
 			line_vertex[0] += 0.05f;
@@ -673,15 +688,29 @@ void drawObjects()
 	{
 		glw->introtation += rotationinc;
 	}
+	else if (glw->introtation > glw->rotation)
+	{
+		glw->introtation -= rotationinc;
+	}
+
+
+	lightpos = view *  glm::vec4(0.3f, 2.5f, -0.5f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 
 	model = glm::translate(model, glm::vec3(x, y - 1.3f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 	comp = 6;
 	glUniform1ui(componentID, comp);
-
+	
+	
 	spring_loaded_lever.drawObject();
 
 	//
+
+	lightpos = view *  glm::vec4(0.5f, 0.25f, 1.0f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 	model = glm::translate(model, glm::vec3(x, y - 0.5f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 	comp = 7;
@@ -690,6 +719,9 @@ void drawObjects()
 	hub.drawObject();
 
 	//
+	lightpos = view *  glm::vec4(0.75f, 2.05f, -1.5f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 	model = glm::translate(model, glm::vec3(x, y - 0.7f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 	comp = 8;
@@ -698,6 +730,9 @@ void drawObjects()
 	finger_wheel.drawObject();
 
 	//
+	lightpos = view *  glm::vec4(0.1f, 0.7f, -3.3f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 	model = glm::mat4(1.0f);
 	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
 	model = glm::rotate(model, 3.5f, glm::vec3(0, 1, 0));
@@ -707,6 +742,12 @@ void drawObjects()
 	{
 		glw->introtation += rotationinc;
 	}
+	else if (glw->introtation > glw->rotation)
+	{
+		glw->introtation -= rotationinc;
+	}
+
+
 	model = glm::translate(model, glm::vec3(x, y - 3.5f, z + 0.05f));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 	comp = 9;
@@ -717,16 +758,22 @@ void drawObjects()
 	//
 	float rot = float(360.0f / 26.0f) / 2.0f;
 
-	
-	
+	lightpos = view *  glm::vec4(0.1f, 0.9f, -4.8f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 	model = glm::translate(model, glm::vec3(x, y - 0.7f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
-	comp = 10;
+	comp = 2;
 	glUniform1ui(componentID, comp);
 
 	back_contact.drawObject();
 
+	//glUseProgram(program[2]);
+
 	//
+	lightpos = view *  glm::vec4(0.7f, 2.95f, -5.5f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 	model = glm::mat4(1.0f);
 
 	glw->rotation = (360.0f / 26.0f) * (float)glw->count;
@@ -734,32 +781,48 @@ void drawObjects()
 	
 	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
 
-	/*PUT BACK IN IF YOU WANT REFLECTOR TO ROTATE
+	//PUT BACK IN IF YOU WANT REFLECTOR TO ROTATE
 	model = glm::rotate(model, -glw->introtation, glm::vec3(0, 1, 0)); //rotate y axis
 
 	if (glw->introtation < glw->rotation)
 	{
 		glw->introtation += rotationinc;
-	}*/
+	}
+	else if (glw->introtation > glw->rotation)
+	{
+		glw->introtation -= rotationinc;
+	}
+
 	model = glm::rotate(model, -rot, glm::vec3(0, 1, 0));
 	
 	model = glm::translate(model, glm::vec3(x, y - 7.3f, z + 0.1f));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
-	comp = 2;
+
+	
+	
+	comp = 10;
 	glUniform1ui(componentID, comp);
 
 	reflector.drawObject();
+	//glUseProgram(program[1]);
 
 	//
+	lightpos = view *  glm::vec4(0.0f, 0.05f, -6.5f, 1.0);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 	model = glm::translate(model, glm::vec3(x - 0.02f, y + 1.8f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+
+	comp = 2;
+	glUniform1ui(componentID, comp);
+
 	contact.drawObject();
 
 	model = glm::mat4(1.0f);
 
 	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
 
-	/*PUT BACK IN IF YOU WANT REFLECTOR TO ROTATE
+	//PUT BACK IN IF YOU WANT REFLECTOR TO ROTATE
 
 	glw->rotation = (360.0f / 26.0f) * (float)glw->count;
 
@@ -768,7 +831,16 @@ void drawObjects()
 	if (glw->introtation < glw->rotation)
 	{
 		glw->introtation += rotationinc;
-	}*/
+	}
+	else if (glw->introtation > glw->rotation)
+	{
+		glw->introtation -= rotationinc;
+	}
+
+	//
+	//lightpos = view *  glm::vec4(lightx, lighty, lightz, 1.0);
+	//glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
 
 	model = glm::rotate(model, 180.0f, glm::vec3(0, 0, 1));
 	//model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
@@ -794,6 +866,10 @@ void drawObjects()
 	{
 		glw->introtation += rotationinc;
 	}	
+	else if (glw->introtation > glw->rotation)
+	{
+		glw->introtation -= rotationinc;
+	}
 
 	//model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
 	model = glm::translate(model, glm::vec3(x - 0.2f, y + 1.f, z - 1.45f));
@@ -864,112 +940,93 @@ void drawObjects()
 				//////////////////////////////////////////////////////////////////////
 				//LINES FOR THE VERY START
 
-				line_vertex[0] = newnumplatex;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-				line_vertex[1] = 5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-				line_vertex[2] = newnumplatez;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+				comp = 12;
+				glUniform1ui(componentID, comp);
 
-				line_vertex[3] = newnumplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-				//MUST BE GREATER THAN line_vertex[1]
-				line_vertex[4] = 2.1f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-				line_vertex[5] = newnumplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+				lightpos = view *  glm::vec4(0.2f, 0.5f, 7.0f, 1.0);
+				glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
-				emitmode = 1;
-				glUniform1ui(emitmodeID, emitmode);
+				set_linevertex(newnumplatex, 5.3f, newnumplatez, newnumplatex, 2.1f, newnumplatez);
 
 				drawBuffers();
+				illuminate();
 
-				//THROUGH TO REFLECTOR
-				line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-				line_vertex[1] = 0.0f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-				line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
+				//////////////////////////////////////////////////////////////////////
+				//LINES FROM PIN TO END OF RATCHET
 
-				line_vertex[3] = newnumpinx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-				line_vertex[4] = -5.3f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-				line_vertex[5] = newnumpinz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
+				lightpos = view *  glm::vec4(0.2f, 0.5f, -2.0f, 1.0);
+				glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
-				//line_vertex[6] = newnumrefx;
-				//line_vertex[7] = 1.3f;
-				//line_vertex[8] = newnumrefz;
-
-				emitmode = 1;
-				glUniform1ui(emitmodeID, emitmode);
+				set_linevertex(newnumpinx, 0.0f, newnumpinz, newnumpinx, -5.3f, newnumpinz);
 
 				drawBuffers();
+				illuminate();
+
 				//////////////////////////////////////////////////////////////////////
 				//LINES FROM RATCHET TO REFLECTOR
 
-				line_vertex[0] = newnumpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-				line_vertex[1] = -5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-				line_vertex[2] = newnumpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-				line_vertex[3] = newnumrefx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-				//MUST BE GREATER THAN line_vertex[1]
-				line_vertex[4] = -6.18f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-				line_vertex[5] = newnumrefz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
-				emitmode = 1;
-				glUniform1ui(emitmodeID, emitmode);
+				set_linevertex(newnumpinx, -5.3f, newnumpinz, newnumrefx, -6.22f, newnumrefz);
 
 				drawBuffers();
+				illuminate();
 
-				//
+				//////////////////////////////////////////////////////////////////////
+				//NEWNUMREF LINE GOING LONGER
+				
+				set_linevertex(newnumrefx, -6.22f, newnumrefz, newnumrefx, -7.0f, newnumrefz);
+
+				drawBuffers();
+				illuminate();
+
+				//////////////////////////////////////////////////////////////////////
+				//LINE IN REFLECTOR
+				glUniform1f(color1ID, 1.0f);
+				glUniform1f(color2ID, 1.0f);
+				glUniform1f(color3ID, 0.0f);
+
+				set_linevertex(newnumrefx, -7.0f, newnumrefz, convrefx, -7.0f, convrefz);
+
+				drawBuffers();
+				illuminate();
+
+				//////////////////////////////////////////////////////////////////////
+				//CONVREF LINE LONGER
 				comp = 13;
 				glUniform1ui(componentID, comp);
 
+				set_linevertex(convrefx, -6.22f, convrefz, convrefx, -7.0f, convrefz);
+				
+				drawBuffers();
+				illuminate();
+
+			
 				//////////////////////////////////////////////////////////////////////
 				//LINES TO COME BACK FROM REFLECTOR
 
-				line_vertex[0] = convpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-				line_vertex[1] = -5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-				line_vertex[2] = convpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-				line_vertex[3] = convrefx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-				//MUST BE GREATER THAN line_vertex[1]
-				line_vertex[4] = -6.18f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-				line_vertex[5] = convrefz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
+				set_linevertex(convpinx, -5.3f, convpinz, convrefx, -6.22f, convrefz);
 
 				drawBuffers();
-
+				illuminate();
 
 				//////////////////////////////////////////////////////////////////////
 				//LINES THROUGH RATCHET BACK TO PINS
 
-				line_vertex[0] = convpinx;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-				line_vertex[1] = 0.0f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-				line_vertex[2] = convpinz;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-				line_vertex[3] = convpinx;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-				//MUST BE GREATER THAN line_vertex[1]
-				line_vertex[4] = -5.3f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-				line_vertex[5] = convpinz;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
+				set_linevertex(convpinx, 0.0f, convpinz, convpinx, -5.3f, convpinz);
 
 				drawBuffers();
+				illuminate();
 
-				//CHANGE ALL THESE TO MAYBE COMP=LIGHTCOLOUR?
-				emitmode = 0;
-				glUniform1ui(emitmodeID, emitmode);
-
+				lightpos = view *  glm::vec4(0.2f, 0.5f, 7.0f, 1.0);
+				glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
 				//////////////////////////////////////////////////////////////////////
 				//LINES BACK TO KEY
 
-				line_vertex[0] = convplatex;// bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-				line_vertex[1] = 5.3f;// bezier(0.0, 100.0f, 8.0f, newnumplatex * newnumplatez + 5.5f, 0);
-				line_vertex[2] = convplatez;// bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-
-				line_vertex[3] = convplatex;// bezier(newnumplatex, newnumplatex, newnumplatex, newnumplatex, 0.5); //Controls horizontal position of line nearest to plate contact
-				//MUST BE GREATER THAN line_vertex[1]
-				line_vertex[4] = 2.1f;// bezier(5.f, 0.0f, 0.0f, 0.0f, 0.5); //Controls length of line
-				line_vertex[5] = convplatez;// bezier(newnumplatez, newnumplatez, newnumplatez, newnumplatez, 0.5); //Controls height of line (up and down) nearest to plate contact
-
+				set_linevertex(convplatex, 5.3f, convplatez, convplatex, 2.1f, convplatez);
 
 				drawBuffers();
+				illuminate();
 
-				//CHANGE ALL THESE TO MAYBE COMP=LIGHTCOLOUR?
-				emitmode = 0;
-				glUniform1ui(emitmodeID, emitmode);
 
 				count = 0.0f;
 				countpin = 0.0f;
@@ -980,8 +1037,6 @@ void drawObjects()
 
 			}
 		}
-	
-
 }
 
 //Draw array of plate contacts in a circle
@@ -1009,6 +1064,7 @@ void drawPins()
 	}
 }
 
+//Initialize pin arrays
 void calculateXZ()
 {
 	for (int i = 0; i < 26; i++)
@@ -1026,19 +1082,22 @@ void calculateXZ()
 		std::cout << "pinx: " << pinx[i];
 		std::cout << ", pinz: " << pinz[i] << std::endl;
 		*/
-		color1[i] = glm::linearRand(0.0f, (float)i / 26);
-		color2[i] = glm::linearRand(0.0f, (float)i / 26);
-		color3[i] = glm::linearRand(0.0f, (float)i / 26);
 	}
 }
 
-GLfloat bezier(float origin, float control1, float control2, float destination, float t)
+//Set line vertex positions
+void set_linevertex(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
 {
-	float point = pow(1 - t, 3) * origin + 3.0 * pow(1 - t, 2) * t * control1 + 3.0 * (1 - t) * t * t * control2 + t * t * t * destination;
-			
-	return point;
+	line_vertex[0] = x1; 
+	line_vertex[1] = y1;//Start length of line
+	line_vertex[2] = z1;
+
+	line_vertex[3] = x2;
+	line_vertex[4] = y2;//End length of line
+	line_vertex[5] = z2;
 }
 
+//Create buffesr
 void createBuffers()
 {
 	// Generate index (name) for one vertex array object
@@ -1050,25 +1109,12 @@ void createBuffers()
 	float vertexColours[] = { 0.1f, 0.5f, 1.0f, 1.0f };
 	calculateXZ();
 	line_vertex = new GLfloat[numpoints * 3];
-	float t = 0.0f;
+
 	for (int i = 0; i < numpoints; i++)
 	{
-		line_vertex[i * 3] = bezier(0.01f, 1.0f, 1.5f, 1.0f, t); 
-		line_vertex[i * 3 + 1] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, t);
-		line_vertex[i * 3 + 2] =  bezier(0.01f, 0.0f, 0.0f, 0.02f, t);
-		
-		//line_vertex[0] = bezier(0.01f, 1.0f, 1.5f, 1.0f, 0);
-		//line_vertex[1] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, 0);
-		//line_vertex[2] = bezier(0.01f, 0.0f, 0.0f, 0.02f, 0);
-		//line_vertex[3] = bezier(0.01f, 1.0f, 1.5f, 1.0f, 0.5); 
-		//line_vertex[4] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, 0.5);
-		//line_vertex[5] = bezier(10.01f, 0.0f, 0.0f, 0.02f, 0.5);
-		//line_vertex[6] = bezier(0.01f, 1.0f, 1.5f, 1.0f, 1);
-		//line_vertex[7] = bezier(-0.01f, 0.0f, 1.0f, 2.5f, 1);
-		//line_vertex[8] = bezier(1.01f, 1.0f, 1.0f, 1.02f, 1);
-
-
-		t += 1.0 / (float)numpoints;
+		line_vertex[i * 3] = 0.0f;
+		line_vertex[i * 3 + 1] = 0.0f;
+		line_vertex[i * 3 + 2] = 0.0f;
 
 		/*std::cout << "x: " << line_vertex[i * 3];
 		std::cout << ", y: " << line_vertex[i * 3 + 1];
@@ -1095,26 +1141,18 @@ void createBuffers()
 	done = true;
 }
 
+//Get number on which pin to map to
 GLuint mapAlphabet(int number, int type)
 {
 	char letter = ' ';
 	char reflect = ' ';
 	GLint character = 0;
 	std::size_t newchar;
-	/*number += 1;
-	if (number == 25)
-	{
-		number = 0;
-	}*/
 	
 	switch (type)
 	{
 	case 0: //MAPS WIRES PIN TO PIN
-			/*number -= 1;
-			if (number == -1)
-			{
-				number = 25;
-			}*/
+			
 			letter = glw->getStaticrOne().at(number);
 			newchar = glw->getAlphabet().find(letter, 0);
 			character = newchar;
@@ -1329,6 +1367,33 @@ GLuint mapAlphabet(int number, int type)
 	return character;*/
 }
 
+//Make line thicker
+void illuminate()
+{
+	for (int i = 0; i < 35; i++)
+	{
+		line_vertex[0] += 0.001f;
+		drawBuffers();
+	}
+	for (int i = 0; i < 35; i++)
+	{
+		line_vertex[2] += 0.001f;
+		drawBuffers();
+	}
+	for (int i = 0; i < 35; i++)
+	{
+		line_vertex[3] += 0.001f;
+		drawBuffers();
+	}
+	for (int i = 0; i < 35; i++)
+	{
+		line_vertex[5] += 0.001f;
+		drawBuffers();
+	}
+
+}
+
+//Initialize
 void init(GLWrapper *glw)
 {
 	angle_x = 15.0f;
@@ -1355,13 +1420,14 @@ void init(GLWrapper *glw)
 	vz = 8.0f;
 
 	cx, cy, cz = 0.0f;
-	lightx = 3.5f;
+	lightx = -1.5f;
 
-	lighty = 1.75f;
+	lighty = 3.75f;
 
-	lightz = 0.0f;
+	lightz = 3.0f;
 	
 	emitmode = 0;
+	color4 = 1.0f;
 	try
 	{
 		program[0] = glw->LoadShader("imgui.vert", "imgui.frag");
@@ -1404,11 +1470,13 @@ void init(GLWrapper *glw)
 	viewID = glGetUniformLocation(program[1], "view");
 	projectionID = glGetUniformLocation(program[1], "projection");
 	lightposID = glGetUniformLocation(program[1], "lightpos");
+
 	normalmatrixID = glGetUniformLocation(program[1], "normalmatrix");
 	componentID = glGetUniformLocation(program[1], "comp");
 	color1ID = glGetUniformLocation(program[1], "color1");
 	color2ID = glGetUniformLocation(program[1], "color2");
 	color3ID = glGetUniformLocation(program[1], "color3");
+	color4ID = glGetUniformLocation(program[1], "color4");
 	emitmodeID = glGetUniformLocation(program[1], "emitmode");
 
 }
@@ -1416,12 +1484,15 @@ void init(GLWrapper *glw)
 void LoadFontsTexture()
 {
 	ImGuiIO& io = ImGui::GetIO();
+
 	//ImFont* my_font1 = io.Fonts->AddFontDefault();
 	//ImFont* my_font2 = io.Fonts->AddFontFromFileTTF("extra_fonts/Karla-Regular.ttf", 15.0f);
 	//ImFont* my_font3 = io.Fonts->AddFontFromFileTTF("extra_fonts/ProggyClean.ttf", 13.0f); my_font3->DisplayOffset.y += 1;
 	//ImFont* my_font4 = io.Fonts->AddFontFromFileTTF("extra_fonts/ProggyTiny.ttf", 10.0f); my_font4->DisplayOffset.y += 1;
 	//ImFont* my_font5 = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 20.0f, io.Fonts->GetGlyphRangesJapanese());
 
+	//io.Fonts->AddFontFromFileTTF("fonts/ProggyClean.ttf", 15.0f);
+	
 	unsigned char* pixels;
 	int width, height;
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits for OpenGL3 demo because it is more likely to be compatible with user's existing shader.
@@ -1451,7 +1522,7 @@ void InitImGui()
 	io.KeyMap[ImGuiKey_Delete] = GLFW_KEY_DELETE;
 	io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
 	io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
-	io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
+	//io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE; //THIS DELETED THE TEXT IN THE INPUT BOX, SO IT IS COMMENTED OUT
 	io.KeyMap[ImGuiKey_A] = GLFW_KEY_A;
 	io.KeyMap[ImGuiKey_C] = GLFW_KEY_C;
 	io.KeyMap[ImGuiKey_V] = GLFW_KEY_V;
@@ -1466,6 +1537,7 @@ void InitImGui()
 	LoadFontsTexture();
 }
 
+//Draw the lines
 void drawBuffers()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
@@ -1498,9 +1570,6 @@ int main(int argc, char ** argv)
 	glw->setMouseButtonCallback(glfw_mouse_button_callback);
 	glw->setScrollCallback(glfw_scroll_callback);
 	glw->setCharCallback(glfw_char_callback);
-	glw->setRotorOne("EKMFLGDQVZNTOWYHXUSPAIBRCJ");
-	glw->setStaticrOne("EKMFLGDQVZNTOWYHXUSPAIBRCJ");
-	glw->setRelfector("YRUHQSLDPXNGOKMIEBFZCWVJAT");
 	init(glw);
 	InitImGui();
 	

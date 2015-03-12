@@ -62,25 +62,50 @@ void enigma::setReflector(std::string str)
 	reflector = str;
 }
 
-void enigma::offset()
+void enigma::offset(int dir)
 {
 	std::string newcode;
 	char first = NULL;
-	for (int i = 0; i < rotorOne.size(); i++)
+
+	//FORWARD
+	if (dir > 0)
 	{
-		char temp = NULL;
-		if (i == 0)
+
+		for (int i = 0; i < rotorOne.size(); i++)
 		{
-			first = rotorOne.at(25);
-			newcode = first;
-		}
-		else
-		{
-			temp = rotorOne.at(i - 1);
-			newcode += temp;
+			char temp = NULL;
+			if (i == 0)
+			{
+				first = rotorOne.at(25);
+				newcode = first;
+			}
+			else
+			{
+				temp = rotorOne.at(i - 1);
+				newcode += temp;
+			}
 		}
 	}
-	//std::cout << "new " << newcode << std::endl;
+
+	//BACKWARDS
+	if (dir < 0)
+	{
+		for (int i = 0; i < rotorOne.size(); i++)
+		{
+			char temp = NULL;
+			if (i == 25)
+			{
+				first = rotorOne.at(0);
+				newcode += first;
+			}
+			else
+			{
+				temp = rotorOne.at(i + 1);
+				newcode += temp;
+			}
+		}
+	}
+	
 	setRotorOne(newcode);
 }
 

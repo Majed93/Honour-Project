@@ -28,7 +28,7 @@ public:
 	std::string reflector;
 	std::string getReflector();
 	std::string getAlphabet();
-	void offset();
+	void offset(int dir);
 	void setReflector(std::string str);
 	int getIndex(char k);
 };

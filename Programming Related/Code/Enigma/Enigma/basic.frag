@@ -20,17 +20,104 @@ out vec4 outputColor;
 
 void main()
 {
-	
-		specular_colour = vec4(0.908273, 0.908273, 0.908273, 1.0);
-		global_ambient = vec4(0.409225, 0.409225, 0.409225, 1.0);
-		shininess = 0.9 * 128; //SILVER
+		switch (comp)
+		{
+			case 0:
+				specular_colour = vec4(0.508273, 0.508273, 0.508273, 1.0);
+				global_ambient = vec4(0.19225, 0.19225, 0.19225, 1.0);
+				shininess = 0.4 * 128; //SILVER
+				break;
 
+			case 1:
+				specular_colour = vec4(0.4508273, 0.4508273, 0.4508273, 1.0);
+				global_ambient = vec4(0.15225, 0.15225, 0.15225, 1.0);
+				shininess = 0.4 * 128; //DARKER SILVER
+				break;
+
+			case 2:
+				specular_colour = vec4(0.332741, 0.328634, 0.346435, 1.0);
+				global_ambient = vec4(0.05375, 0.05, 0.06625, 1.0);
+				shininess = 0.9 * 128; //OBSIDIAN
+				break;
+
+			case 3:
+				specular_colour = vec4(0.774597, 0.774597, 0.774597, 1.0);
+				global_ambient = vec4(0.25, 0.25, 0.25, 1.0);
+				shininess = 0.6 * 128; //CHROME
+				break;
+
+			case 4:
+				specular_colour = vec4(0.628281, 0.555802, 0.366065, 1.0);
+				global_ambient = vec4(0.24725, 0.1995, 0.0745, 1.0);
+				shininess = 0.4 * 128; //GOLD
+				break;
+
+			case 5:
+				specular_colour = vec4(0.628281, 0.555802, 0.366065, 1.0);
+				global_ambient = vec4(0.24725, 0.1995, 0.0745, 1.0);
+				shininess = 0.9 * 128; //GOLD
+				break;
+
+			case 6:
+				specular_colour = vec4(0.256777, 0.137622, 0.086014, 1.0);
+				global_ambient = vec4(0.19125, 0.0735, 0.0225, 1.0);
+				shininess = 0.1 * 128; //COPPER
+				break;
+
+			case 7:
+				specular_colour = vec4(0.628281, 0.555802, 0.366065, 1.0);
+				global_ambient = vec4(0.24725, 0.1995, 0.0745, 1.0);
+				shininess = 0.9 * 128; //GOLD
+				break;
+
+			case 8:
+				specular_colour = vec4(0.4508273, 0.4508273, 0.4508273, 1.0);
+				global_ambient = vec4(0.19225, 0.19225, 0.19225, 1.0);
+				shininess = 0.4 * 128; //SILVER
+				break;
+
+			case 9:
+				specular_colour = vec4(0.4, 0.4, 0.4, 1.0);
+				global_ambient = vec4(0.0, 0.0, 0.0, 1.0);
+				shininess = 0.25 * 128; //BLACK PLASTIC
+				break;
+			
+			case 10:
+				specular_colour = vec4(0.6774597, 0.6774597, 0.6774597, 1.0);
+				global_ambient = vec4(0.2, 0.2, 0.2, 1.0);
+				shininess = 0.6 * 128; //CHROME
+				break;
+			
+			case 11:
+				specular_colour = vec4(0.16774597, 0.16774597, 0.6774597, 1.0);
+				global_ambient = vec4(0.2, 0.2, 0.2, 1.0);
+				shininess = 0.4 * 128; //CHROME
+				break;
+
+			case 12:
+				specular_colour = vec4(0.6774597, 0.6774597, 0.6774597, 1.0);
+				global_ambient = vec4(0.5, 0.5, 0.5, 1.0);
+				shininess = 0.9 * 128; //CHROME
+				break;
+
+			case 13:
+				specular_colour = vec4(0.6774597, 0.6774597, 0.6774597, 1.0);
+				global_ambient = vec4(0.2, 0.2, 0.2, 1.0);
+				shininess = 0.9 * 128; //CHROME
+				break;
+			default:
+				specular_colour = vec4(0.908273, 0.908273, 0.908273, 1.0);
+				global_ambient = vec4(0.409225, 0.409225, 0.409225, 1.0);
+				shininess = 0.9 * 128; //SILVER
+
+				break;
+		}
+	
 		vec4 emissive = vec4(0);				// Create a vec4(0, 0, 0) for our emmissive light
-		vec4 fambientcolour = fdiffusecolour * 9.99;
-		vec4 fspecularcolour =  vec4(1.0, 1.0, 0.5, 1.0);
+		vec4 fambientcolour = fdiffusecolour * 3.99;
+		vec4 fspecularcolour =  vec4(0.8, 0.8, 0.55, 1.0);
 		float distancetolight = length(flightdir);
 
-	
 		// Normalise interpolated vectors
 		vec3 L = normalize(flightdir);
 		vec3 N = normalize(fnormal);		
@@ -62,7 +149,6 @@ void main()
 		// are always visible, or include a global ambient
 
 		outputColor = attenuation*(fambientcolour + diffuse + specular) + emissive + global_ambient;
-
 	
 }
 
