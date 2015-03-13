@@ -508,7 +508,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::Spacing();
 
-			ImGui::TextWrapped("The rotor automatically rotates once you press a letter by click, and also reverse upon backspace. Please note that the rotor does take a few seconds to rotate each click therefore if many letters are entered in a short amount of time, there may be a delay in the rotor completing its rotation");
+			ImGui::TextWrapped("The rotor automatically rotates once you press a letter by click, and also reverse upon backspace. Please note that the rotor does take a few seconds to rotate each click therefore if many letters are entered in a short amount of time, there may be a delay in the rotor completing its rotation. For optimal experience it is recommended to take your time.");
 
 			ImGui::Spacing();
 

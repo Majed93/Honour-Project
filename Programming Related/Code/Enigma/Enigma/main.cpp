@@ -9,7 +9,10 @@ Majed Monem
 #pragma clang diagnostic ignored "-Wunused-function"   // warning: unused function
 #endif
 
+
 #include "imgui.h"
+#include <Windows.h>
+#include "resource.h"
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image.h"
 #include "wrapper_glfw.h"
@@ -1562,7 +1565,8 @@ void drawBuffers()
 }
 
 //Main Application Code
-int main(int argc, char ** argv)
+//int main(int argc, char ** argv) //SHOWS CONSOLE
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
 {
 
 	glw->setKeyCallback(keyCallback);

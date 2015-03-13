@@ -1,31 +1,40 @@
-﻿Build started 11/03/2015 20:31:39.
+﻿Build started 13/03/2015 17:33:40.
      1>Project "C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\Enigma.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glfw" /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glew" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glfw" /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glew" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp wrapper_glfw.cpp
+         wrapper_glfw.cpp
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(187): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(224): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(293): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(376): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(421): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(713): warning C4101: 'e' : unreferenced local variable
          main.cpp
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(60): warning C4305: 'initializing' : truncation from 'double' to 'GLfloat'
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(65): warning C4244: 'initializing' : conversion from 'float' to 'GLuint', possible loss of data
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(614): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(905): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(911): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(917): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(923): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(929): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(935): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1031): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1032): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(63): warning C4305: 'initializing' : truncation from 'double' to 'GLfloat'
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(68): warning C4244: 'initializing' : conversion from 'float' to 'GLuint', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(617): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(908): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(914): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(920): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(926): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(932): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(938): warning C4018: '<' : signed/unsigned mismatch
      1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1034): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
      1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1035): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1036): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1073): warning C4244: '=' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1074): warning C4244: '=' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1075): warning C4244: '=' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1037): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1038): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1039): warning C4244: '=' : conversion from 'float' to 'GLuint', possible loss of data
      1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1076): warning C4244: '=' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1113): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1077): warning C4244: '=' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1078): warning C4244: '=' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1079): warning C4244: '=' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1116): warning C4018: '<' : signed/unsigned mismatch
          GLM: perspective function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
          GLM: rotate function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
+         Generating Code...
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glfw" /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glew" opengl32.lib imm32.lib glfw3.lib glew32s.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.lib" /MACHINE:X86 Debug\enigma.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glfw" /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glew" opengl32.lib imm32.lib glfw3.lib glew32s.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.lib" /MACHINE:X86 Debug\Enigma.res
+         Debug\enigma.obj
          Debug\imgui.obj
          Debug\main.obj
          Debug\object_ldr.obj
@@ -35,4 +44,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.63
+Time Elapsed 00:00:03.20
