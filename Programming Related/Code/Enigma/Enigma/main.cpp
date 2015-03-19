@@ -82,7 +82,7 @@ GLfloat aspect_ratio;		/* Aspect ratio of the window defined in the reshape call
 
 static GLWrapper *glw = new GLWrapper(400, 300, "Graphical Enigma Simulator - Main Menu");
 
-static GLFWwindow* window;
+//static GLFWwindow* window;
 static GLuint fontTex;
 static bool mousePressed[2] = { false, false };
 
@@ -301,12 +301,13 @@ void display() {
 
 static const char* ImImpl_GetClipboardTextFn()
 {
-	return glfwGetClipboardString(window);
+	//return glfwGetClipboardString(glw->window);//ERROR ON PASTE?
+	return NULL;
 }
 
 static void ImImpl_SetClipboardTextFn(const char* text)
 {
-	glfwSetClipboardString(window, text);
+	glfwSetClipboardString(glw->window, text);
 }
 
 /* Called whenever the window is resized. The new window size is given, in pixels. */
@@ -318,7 +319,7 @@ static void reshape(GLFWwindow* window, int w, int h)
 	aspect_ratio = ((float)w / 1280.f*4.f) / ((float)h / 960.f*3.f);
 }
 
-/* change camera, exit upon ESC */
+/* change camera, and callback on encrypt and decrypt methods on key press */
 static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 {
 	//if (action != GLFW_PRESS) return;
@@ -326,8 +327,9 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 	/*if (k == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 */
+	
 	//64 and 90 are all alphabet values
-	if (k > 64 && k < 91 && action == GLFW_PRESS)
+	if (k > 64 && k < 91 && action == GLFW_PRESS && strlen(glw->strPlain) < 95)
 	{
 		//std::cout << "letter code :" << k << std::endl;
 		if (glw->mode == "En")
@@ -345,11 +347,11 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 	{
 
 	}
-
+	
 	//Backspace
-	else if (k == 259 && action == GLFW_PRESS)
+	if (k == 259 && action == GLFW_PRESS)
 	{
-		if (glw->encrypted != "" || glw->decrypted != "")
+		if ((glw->encrypted != "" || glw->decrypted != "") )
 		{
 			if (glw->mode == "En")
 			{
@@ -1534,8 +1536,8 @@ void InitImGui()
 	io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
 
 	io.RenderDrawListsFn = ImImpl_RenderDrawLists;
-	io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;
-	io.GetClipboardTextFn = ImImpl_GetClipboardTextFn;
+	//io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;
+	//io.GetClipboardTextFn = ImImpl_GetClipboardTextFn;
 
 	LoadFontsTexture();
 }
@@ -1565,6 +1567,7 @@ void drawBuffers()
 }
 
 //Main Application Code
+
 //int main(int argc, char ** argv) //SHOWS CONSOLE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
 {

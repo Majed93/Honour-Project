@@ -46,9 +46,9 @@ private:
 	void(*scroll)(GLFWwindow* window, double xoffset, double yoffset);
 	void(*chars)(GLFWwindow* window, unsigned int c);
 	bool running;
-	GLFWwindow* window;
 	
 public:
+	GLFWwindow* window;
 	GLWrapper(int width, int height, char *title);
 	~GLWrapper();
 
@@ -94,8 +94,8 @@ public:
 	int height;
 	bool resized;
 
-	char strPlain[70];
-	char strCipher[70];
+	char strPlain[96];
+	char strCipher[96];
 
 	int count;
 	std::string rotorOne;
@@ -105,6 +105,7 @@ public:
 	bool* platechange;
 	bool complete;
 	int changenum;
+
 	GLfloat rotation, introtation = 0.0f;
 	GLchar getCiphered(int index);
 	GLchar getPlain(int index, char k);

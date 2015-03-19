@@ -141,7 +141,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		static bool help_notitlebar = false;
 		static bool help_nomove = false;
 		static bool help_noscrollbar = false;
-
+		
 		static float fill_alpha = 0.65f;
 
 		const char* rotorno[] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII" };
@@ -292,7 +292,6 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			
 			ImGui::PushItemWidth(width - 25);
 			ImGui::Text("Plain Text");
-			
 			struct TextFilters {
 				static int FilterAZ(ImGuiTextEditCallbackData* data)
 				{
@@ -328,19 +327,22 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::PopItemWidth();
 
 			//FIX BACKSPACE
-			if (strlen(strPlain) > 0)
+			if (strlen(strPlain) <= encrypted.length())
 			{
-				if ((encrypted.length()!= strlen(strPlain)))
+				if (strlen(strPlain) > 0)
+				{
+					if ((encrypted.length() != strlen(strPlain)))
+					{
+						encrypted.pop_back();
+					}
+				}
+
+				//SPECIAL CASE
+				if (strlen(strPlain) < 1 && encrypted != "")
 				{
 					encrypted.pop_back();
 				}
 			}
-			//SPECIAL CASE
-			if (strlen(strPlain) < 1 && encrypted != "")
-			{
-				encrypted.pop_back();
-			}
-
 			complete = false;
 
 
@@ -372,8 +374,8 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::Begin("", &show_decrypt, ImVec2(100, 100), fill_alpha, layout_flags);
 			title = "Graphical Enigma Simulator - Decrypt";
 			
-			ImGui::SetWindowPos(ImVec2(0, 350), 0);
-			ImGui::SetWindowSize(ImVec2(width, height - 250), 0);
+			ImGui::SetWindowPos(ImVec2(0, height * 0.72f), 0);
+			ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
 
 			show_main ^= ImGui::Button("Back To Main Menu");
 			ImGui::SameLine();
@@ -420,14 +422,15 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::PushItemWidth(width - 25);
 			ImGui::Text("Plain Text");
-
+			
 			style.ItemInnerSpacing.x = 10.f;
 			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f), ImVec2(wrap_width + width, ImGui::GetTextLineHeight()), 0xff808080);
 			ImGui::Text(decrypted.c_str());
 
-			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, 435.0f), 0xff808080);
-			
+			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, height - 55.0f), 0xff808080);
+
 			ImGui::Text("Cipher Text");
+			
 			struct TextFilters {
 				static int FilterAZ(ImGuiTextEditCallbackData* data)
 				{
@@ -454,24 +457,27 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::PopItemWidth();
 
 			//FIX BACKSPACE
-			if (strlen(strCipher) > 0)
+			if (strlen(strCipher) <= decrypted.length())
 			{
-				if ((decrypted.length() != strlen(strCipher)))
+				if (strlen(strCipher) > 0)
+				{
+					if ((decrypted.length() != strlen(strCipher)))
+					{
+						decrypted.pop_back();
+					}
+				}
+				//SPECIAL CASE
+				if (strlen(strCipher) < 1 && decrypted != "")
 				{
 					decrypted.pop_back();
 				}
 			}
-			//SPECIAL CASE
-			if (strlen(strCipher) < 1 && decrypted != "")
-			{
-				decrypted.pop_back();
-			}
-
 			complete = false;
 			
 			ImGui::End();
 		}
 
+		//Help Screen
 		if (show_help == true)
 		{
 			ImGui::PushStyleColor(ImGuiCol_TitleBg, ImColor::ImColor(ImVec4(0.15f, 0.15f, 0.15f, 1.0f)));
@@ -512,6 +518,14 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::Spacing();
 
+			ImGui::TextWrapped("Cut, Copy and Paste are NOT facilitated");
+
+			ImGui::Spacing();
+
+			ImGui::TextWrapped("DO NOT HOLD LETTERS DOWN AS THE ROTOR CAN ONLY DO ONE LETTER AT A TIME");
+
+			ImGui::Spacing();
+
 			ImGui::TextWrapped("The only controls available are the movements of the camera.");
 			
 			ImGui::Spacing();
@@ -539,7 +553,6 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::PopStyleColor(4);
 
 		}
-
 		//Exit Application
 		if(show_exit == true){
 			glfwSetWindowShouldClose(window, GL_TRUE);
