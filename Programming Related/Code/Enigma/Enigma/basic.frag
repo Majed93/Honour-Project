@@ -1,3 +1,4 @@
+//Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 // Minimal fragment shader
 // This does majority of the work for lighting
 #version 420

@@ -1,3 +1,4 @@
+//Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 
 // Specify minimum OpenGL version
 #version 400

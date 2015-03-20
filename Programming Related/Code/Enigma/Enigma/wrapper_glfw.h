@@ -1,7 +1,8 @@
 /**
 wrapper_glfw.h
 Modified from the OpenGL GLFW example to provide a wrapper GLFW class
-Iain Martin August 2014
+Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
+
 */
 #pragma once
 
@@ -11,10 +12,7 @@ Iain Martin August 2014
 
 #include "imgui.h"
 #include "enigma.h"
-// Glfw/Glew
-/* Inlcude GL_Load and GLFW */
-//#include <glload/gl_4_0.h>
-//#include <glload/gl_load.h>
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -67,6 +65,7 @@ public:
 	void setCharCallback(void(*f)(GLFWwindow* window, unsigned int c));
 	void setErrorCallback(void(*f)(int error, const char* description));
 	void UpdateImGui(bool mousePressed[]);
+
 	/* Shader load and build support functions */
 	GLuint LoadShader(const char *vertex_path, const char *fragment_path);
 	GLuint BuildShader(GLenum eShaderType, const std::string &shaderText);
@@ -84,10 +83,8 @@ public:
 
 	std::string getAlphabet();
 
-	int getIndex(char k);
 
 	int eventLoop(bool mousePressed[]);
-	void swap();
 	GLFWwindow* getWindow();
 	std::string mode;
 	int width;
@@ -110,14 +107,7 @@ public:
 	GLchar getCiphered(int index);
 	GLchar getPlain(int index, char k);
 	
-	std::size_t st_rotorone;
-	char char_rOne;
-	char char_reflect;
-	char char_letter;
-	std::size_t st_newreflect;
-	char char_inrOne;
-	std::size_t st_newchar;
-
+	
 	std::string rotors[7];
 	std::string reflectors[5];
 

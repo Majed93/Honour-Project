@@ -1,67 +1,108 @@
 #pragma once
 /*
-Majed Monem
+Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 Encryption/Decryption class
 */
 #include "enigma.h"
 #include <string>
 #include <iostream>
 
-
+//Constructor for Enigma object
 enigma::enigma()
 {
 	alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 }
 
+//Destructor for Enigma object
 enigma::~enigma()
 {
+
 }
 
-void enigma::encrypt()
+//Encryption occurs here
+char enigma::encrypt(int index)
 {
+	
+	char_rOne = getRotorOne().at(index);
+	char_reflect = getReflector().at(getIndex(char_rOne));
+	st_newchar = getRotorOne().find(char_reflect, 0);
+	char_letter = getAlphabet().at(st_newchar);
+	return char_letter;// machine.getRotorOne().at(st_newchar);
 
+	//DEBUGGING
+	//std::cout << "Encrypt - index " << totalindex << std::endl;
+	//std::cout << "rone " << char_rOne << std::endl;//E//U
+	//std::cout << "reflect " << char_reflect << std::endl;//Q//C
+	//std::cout << "newrotor " << st_newchar << std::endl;//16//2
+	//std::cout << "letter " << char_letter << std::endl;//X//K
+	//return getRotorOne().at(st_newchar);
+	//return machine.getRotorOne().at(st_newchar);
 }
 
-void enigma::decrpyt()
+//Decryption occurs here
+char enigma::decrypt(int index, char k)
 {
+	st_rotorone = getRotorOne().find(k, 0);
+	char_rOne = getRotorOne().at(index);
+	st_newreflect = getReflector().find(char_rOne, 0);
+	char_inrOne = getAlphabet().at(st_newreflect);
+	st_newchar = getRotorOne().find(char_inrOne, 0);
+	char_letter = getAlphabet().at(st_newchar);
+	return char_letter;// machine.getAlphabet().at(st_newchar);
 
+	//DEBUGGING
+	//std::cout << "Decrypt - index " << totalindex << std::endl;
+	//std::cout << "newrotor " << st_rotorone << std::endl;//16//2
+	//std::cout << "rOne " << char_rOne << std::endl;//Q//C
+	//std::cout << "newreflect " << st_newreflect << std::endl;//4//20
+	//std::cout << "in rotor one " << char_inrOne << std::endl;//E//U
+	//std::cout << "Rotor one index " << st_newchar << std::endl;//0//18
+	//std::cout << "letter " << char_letter << std::endl;//A
 }
 
+//Returns the alphabet string
 std::string enigma::getAlphabet()
 {
 	return alphabet;
 }
 
+//Returns the current rotor one string
 std::string enigma::getRotorOne()
 {
 	return rotorOne;
 }
 
+//Sets rotor one string
 void enigma::setRotorOne(std::string str)
 {
 	rotorOne = str;
 }
 
+//Returns static rotor string
 std::string enigma::getStaticrOne()
 {
 	return staticrOne;
 }
 
+//Sets static rotor string
 void enigma::setStaticrOne(std::string str)
 {
 	staticrOne = str;
 }
 
+//Return reflector string
 std::string enigma::getReflector()
 {
 	return reflector;
 }
 
+//Sets reflector string
 void enigma::setReflector(std::string str)
 {
 	reflector = str;
 }
 
+//Moves the rotor position. i.e the string moves up one index location.
 void enigma::offset(int dir)
 {
 	std::string newcode;
@@ -109,6 +150,7 @@ void enigma::offset(int dir)
 	setRotorOne(newcode);
 }
 
+//This is bad of doing it, change later if time.
 int enigma::getIndex(char k)
 {
 	int character = NULL;
@@ -224,4 +266,16 @@ int enigma::getIndex(char k)
 	}
 
 	return character;
+}
+
+//Reset variables
+void enigma::reset()
+{
+	st_rotorone = 0;
+	char_rOne = ' ';
+	char_reflect = ' ';
+	char_letter = ' ';
+	st_newreflect = 0;
+	char_inrOne = ' ';
+	st_newchar = 0;
 }

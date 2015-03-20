@@ -1,5 +1,7 @@
 /*
-Majed Monem
+Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
+Any commented out code remains as it is has a purpose such as printing out to console for debugging(need to change main function) 
+and code which would be helpful for future development.
 */
 
 #ifdef _MSC_VER
@@ -38,7 +40,6 @@ Majed Monem
 #include <string>
 
 
-//GLuint positionBufferObject, colourObject;
 GLuint program[2];
 GLuint vao, current;
 GLuint positionBufferObject, colourObject;
@@ -49,15 +50,11 @@ GLfloat angle_z, angle_z_inc;
 GLfloat angle_y, angle_y_inc;
 GLfloat lightx, lighty, lightz;
 GLfloat x, y, z;
-
 GLfloat vx, vy, vz;
-
 GLfloat cx, cy, cz;
-
 GLfloat scale, scale_inc;
 
 GLfloat platex[26], platez[26];
-
 GLfloat pinx[26], pinz[26];
 
 GLfloat pi = 3.141592;
@@ -72,6 +69,7 @@ GLfloat convplatex, convplatez, convpinx, convpinz, convrefx, convrefz = 0.0f;
 std::size_t newcount;
 GLfloat* line_vertex;
 GLboolean done = false;
+
 /* Uniforms*/
 GLuint modelID, viewID, projectionID, normalmatrixID, lightposID, componentID, color1ID, color2ID, color3ID, color4ID, emitmodeID;
 glm::mat4 model, view;
@@ -80,9 +78,9 @@ GLuint comp, emitmode;
 GLfloat color4;
 GLfloat aspect_ratio;		/* Aspect ratio of the window defined in the reshape callback*/
 
+//Our window created by GLFW
 static GLWrapper *glw = new GLWrapper(400, 300, "Graphical Enigma Simulator - Main Menu");
 
-//static GLFWwindow* window;
 static GLuint fontTex;
 static bool mousePressed[2] = { false, false };
 
@@ -105,6 +103,7 @@ static int position_location, uv_location, colour_location;
 static size_t vbo_max_size = 20000;
 static unsigned int vbo_handle, vao_handle;
 
+//Function definitions as required
 void display();
 void drawObjects();
 void drawPlates();
@@ -116,6 +115,8 @@ void calculateXZ();
 void illuminate();
 GLuint mapAlphabet(int number,int type);
 void set_linevertex(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2);
+
+
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - try adjusting ImGui::GetIO().PixelCenterOffset to 0.0f or 0.5f
@@ -214,6 +215,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+//Objects drawing to screen here NOT GUI
 void display() {
 
 	glEnable(GL_DEPTH_TEST);
@@ -299,12 +301,14 @@ void display() {
 	scale += scale_inc;
 }
 
+//Paste. Disabled due to bug
 static const char* ImImpl_GetClipboardTextFn()
 {
 	//return glfwGetClipboardString(glw->window);//ERROR ON PASTE?
 	return NULL;
 }
 
+//Copy
 static void ImImpl_SetClipboardTextFn(const char* text)
 {
 	glfwSetClipboardString(glw->window, text);
@@ -415,18 +419,21 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 
 }
 
+//Mouse callback
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	if (action == GLFW_PRESS && button >= 0 && button < 2)
 		mousePressed[button] = true;
 }
 
+//Scroll callback
 static void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.MouseWheel += (float)yoffset; // Use fractional mouse wheel, 1.0 unit 5 lines.
 }
 
+//Character callback
 static void glfw_char_callback(GLFWwindow* window, unsigned int c)
 {
 	if (c > 0 && c < 0x10000)
@@ -1167,7 +1174,7 @@ GLuint mapAlphabet(int number, int type)
 		if (glw->mode == "En")
 		{
 			
-			newchar = glw->getReflector().find(glw->char_rOne, 0);
+			newchar = glw->getReflector().find(glw->machine.char_rOne, 0);
 			//std::cout << letter << " | " << newchar << std::endl;
 
 			character = newchar;
@@ -1175,7 +1182,7 @@ GLuint mapAlphabet(int number, int type)
 		}
 		else if (glw->mode == "De")
 		{
-			newchar = glw->getReflector().find(glw->char_rOne, 0);
+			newchar = glw->getReflector().find(glw->machine.char_rOne, 0);
 			//std::cout << letter << " | " << newchar << std::endl;
 
 			character = newchar;
@@ -1185,7 +1192,7 @@ GLuint mapAlphabet(int number, int type)
 	case 2: //POINT ON REFLECTOR
 		if (glw->mode == "En")
 		{
-			newchar = glw->getReflector().find(glw->char_reflect, 0);
+			newchar = glw->getReflector().find(glw->machine.char_reflect, 0);
 			//std::cout << reflect << " | " << newchar << std::endl;
 
 			character = newchar;
@@ -1193,7 +1200,7 @@ GLuint mapAlphabet(int number, int type)
 		}
 		else if (glw->mode == "De")
 		{
-			newchar = glw->getReflector().find(glw->char_inrOne, 0);
+			newchar = glw->getReflector().find(glw->machine.char_inrOne, 0);
 			//std::cout << letter << " | " << newchar << std::endl;
 
 			character = newchar;
@@ -1205,7 +1212,7 @@ GLuint mapAlphabet(int number, int type)
 		{
 			
 			//newchar = glw->getAlphabet().find(glw->char_letter, 0);
-			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			newchar = glw->getAlphabet().find(glw->machine.char_letter, 0);
 			letter = glw->getStaticrOne().at(newchar);
 			newchar = glw->getAlphabet().find(letter, 0);
 
@@ -1220,7 +1227,7 @@ GLuint mapAlphabet(int number, int type)
 		{
 
 			//newchar = glw->getRotorOne().find(glw->char_letter, 0);
-			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			newchar = glw->getAlphabet().find(glw->machine.char_letter, 0);
 			letter = glw->getStaticrOne().at(newchar);
 			newchar = glw->getAlphabet().find(letter, 0);
 
@@ -1233,7 +1240,7 @@ GLuint mapAlphabet(int number, int type)
 	case 4: //FINAL CIPHERED KEY
 		if (glw->mode == "En")
 		{
-			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			newchar = glw->getAlphabet().find(glw->machine.char_letter, 0);
 			//std::cout << letter << " | " << newchar << std::endl;
 
 			glw->platechange[newchar] = true;
@@ -1243,7 +1250,7 @@ GLuint mapAlphabet(int number, int type)
 		}
 		else if (glw->mode == "De")
 		{
-			newchar = glw->getAlphabet().find(glw->char_letter, 0);
+			newchar = glw->getAlphabet().find(glw->machine.char_letter, 0);
 			glw->platechange[newchar] = true;
 
 			//std::cout << letter << " | " << newchar << std::endl;
@@ -1486,6 +1493,7 @@ void init(GLWrapper *glw)
 
 }
 
+//Loads texture for fonts
 void LoadFontsTexture()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -1513,6 +1521,7 @@ void LoadFontsTexture()
 	io.Fonts->TexID = (void *)(intptr_t)tex_id;
 }
 
+//Initialize ImGUI
 void InitImGui()
 {
 	ImGuiIO& io = ImGui::GetIO();

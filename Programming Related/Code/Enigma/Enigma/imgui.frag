@@ -1,3 +1,5 @@
+//Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
+
 // Minimal fragment shader
 
 #version 420

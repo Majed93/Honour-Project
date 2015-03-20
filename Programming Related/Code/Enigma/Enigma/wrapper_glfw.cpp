@@ -3,6 +3,7 @@
   Modified from the OpenGL GLFW example to provide a wrapper GLFW class
   and to include shader loader functions to include shaders as text files
   Iain Martin August 2014
+  Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
   */
 #ifdef _MSC_VER
 #pragma warning (disable: 4996)         // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
@@ -31,8 +32,6 @@
 #include <string>
 #include <cctype>
 
-
-
 /* Constructor for wrapper object */
 GLWrapper::GLWrapper(int width, int height, char *title) {
 
@@ -44,9 +43,8 @@ GLWrapper::GLWrapper(int width, int height, char *title) {
 	complete = false;
 	changed = new bool[25];
 	platechange = new bool[25];
-	//rotors = new std::string[8];
-	//reflectors = new std::string[8];
 	reset();
+
 	/* Initialise GLFW and exit if it fails */
 	if (!glfwInit()) 
 	{
@@ -158,7 +156,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
 
-
+		//Main Menu
 		if (show_main == true)
 		{
 			if (!resized)
@@ -553,6 +551,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::PopStyleColor(4);
 
 		}
+
 		//Exit Application
 		if(show_exit == true){
 			glfwSetWindowShouldClose(window, GL_TRUE);
@@ -573,11 +572,6 @@ int GLWrapper::eventLoop(bool mousePressed[])
 	return 0;
 }
 
-
-void GLWrapper::swap()
-{
-	//glfwSwapBuffers(window);
-}
 /* Register an error callback function */
 void GLWrapper::setErrorCallback(void(*func)(int error, const char* description))
 {
@@ -755,7 +749,7 @@ GLuint GLWrapper::BuildShaderProgram(std::string vertShaderStr, std::string frag
 	return program;
 }
 
-
+/*Update current state of UI*/
 void GLWrapper::UpdateImGui(bool mousePressed[2])
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -787,95 +781,80 @@ void GLWrapper::UpdateImGui(bool mousePressed[2])
 	ImGui::NewFrame();
 }
 
+//Returns alphabet string
 std::string GLWrapper::getAlphabet()
 {
 	return machine.getAlphabet();
 }
 
+//Returns rotor one string
 std::string GLWrapper::getRotorOne()
 {
 	return machine.getRotorOne();
 }
 
+//Sets rotor one string
 void GLWrapper::setRotorOne(std::string str)
 {
 	machine.setRotorOne(str);
 }
 
+//Returns static rotor string
 std::string GLWrapper::getStaticrOne()
 {
 	return machine.getStaticrOne();
 }
 
+//Sets static rotor string
 void GLWrapper::setStaticrOne(std::string str)
 {
 	machine.setStaticrOne(str);
 }
+
+//Returns reflector string
 std::string GLWrapper::getReflector()
 {
 	return machine.getReflector();
 }
 
+//Sets reflector string
 void GLWrapper::setRelfector(std::string str)
 {
 	machine.setReflector(str);
 }
 
+//Encryption occurs here
 void GLWrapper::Encrypt(char k)
 {
 	//std::cout << "letter index:" << machine.getIndex(k) << std::endl;
 	//std::cout << "cipher letter:" << getCiphered(machine.getIndex(k)) << std::endl;
-	getCiphered(machine.getIndex(k));
-	machine.offset(1);
-	count += 1;
-}
+	//getCiphered(machine.getIndex(k));
 
-void GLWrapper::Decrypt(char k)
-{
-	getPlain(machine.getIndex(k), k);
-	machine.offset(1);
-	count += 1;
-}
+	int index = machine.getIndex(k);
 
-int GLWrapper::getIndex(char k)
-{
-	return machine.getIndex(k);
-}
-
-char GLWrapper::getCiphered(int index)
-{
 	for (int i = 0; i < 26; i++)
 	{
 		changed[i] = false;
 		platechange[i] = false;
 	}
-	
+
 	int totalindex = index + changenum;
 	if (totalindex > 25)
 	{
 		totalindex -= 26;
 	}
 	changed[totalindex] = true;
-
-
-	char_rOne = getRotorOne().at(index);
-	char_reflect = getReflector().at(machine.getIndex(char_rOne));
-	st_newchar = machine.getRotorOne().find(char_reflect, 0);
-	char_letter = machine.getAlphabet().at(st_newchar);
-	encrypted += char_letter;// machine.getRotorOne().at(st_newchar);
 	
-	//std::cout << "Encrypt - index " << totalindex << std::endl;
-	//std::cout << "rone " << char_rOne << std::endl;//E//U
-	//std::cout << "reflect " << char_reflect << std::endl;//Q//C
-	//std::cout << "newrotor " << st_newchar << std::endl;//16//2
-	//std::cout << "letter " << char_letter << std::endl;//X//K
-
-	return machine.getRotorOne().at(st_newchar);
-
+	encrypted += machine.encrypt(index);
+	machine.offset(1);
+	count += 1;
 }
 
-char GLWrapper::getPlain(int index, char k)
+//Decryption
+void GLWrapper::Decrypt(char k)
 {
+	int index = machine.getIndex(k);
+
 	for (int i = 0; i < 26; i++)
 	{
 		changed[i] = false;
@@ -890,28 +869,15 @@ char GLWrapper::getPlain(int index, char k)
 	}
 
 	changed[totalindex] = true;
-	
-	st_rotorone = machine.getRotorOne().find(k, 0);
-	char_rOne = machine.getRotorOne().at(index);
-	st_newreflect = machine.getReflector().find(char_rOne, 0);
-	char_inrOne = machine.getAlphabet().at(st_newreflect);
-	st_newchar = machine.getRotorOne().find(char_inrOne, 0);
-	char_letter = machine.getAlphabet().at(st_newchar);
-	decrypted += char_letter;// machine.getAlphabet().at(st_newchar);
 
-	//std::cout << "Decrypt - index " << totalindex << std::endl;
-	//std::cout << "newrotor " << st_rotorone << std::endl;//16//2
-	//std::cout << "rOne " << char_rOne << std::endl;//Q//C
-	//std::cout << "newreflect " << st_newreflect << std::endl;//4//20
-	//std::cout << "in rotor one " << char_inrOne << std::endl;//E//U
-	//std::cout << "Rotor one index " << st_newchar << std::endl;//0//18
-	//std::cout << "letter " << char_letter << std::endl;//A
+	//getPlain(machine.getIndex(k), k);
 
-	
-	return machine.getIndex(st_newchar);
-
+	decrypted += machine.decrypt(index, k);
+	machine.offset(1);
+	count += 1;
 }
 
+//Reset variables
 void GLWrapper::reset()
 {
 	encrypted = "";
@@ -922,7 +888,7 @@ void GLWrapper::reset()
 		changed[i] = false;
 		platechange[i] = false;
 	}
-	//MAKE IT ONLY HAPPEN ONCE FOR EFFICIENCY! //IF DONE = TRUE THEN DON'T DO!
+
 	for (int i = 0; i < 70; i++)
 	{
 		strPlain[i] = '\0';
@@ -958,13 +924,8 @@ void GLWrapper::reset()
 	setStaticrOne(rotors[combopos1]);
 	setRelfector(reflectors[combopos2]);
 	rotation, introtation = 0.0f;
-	st_rotorone = 0;
-	char_rOne = ' ';
-	char_reflect = ' ';
-	char_letter = ' ';
-	st_newreflect = 0;
-	char_inrOne = ' ';
-	st_newchar = 0;
+	machine.reset();
+	
 	complete = true;
 	resized = false;
 }
