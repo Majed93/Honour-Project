@@ -2,7 +2,7 @@
 
 // Minimal fragment shader
 
-#version 420
+#version 330
 
 uniform sampler2D Texture;
 in vec2 Frag_UV;
