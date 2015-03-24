@@ -1,6 +1,8 @@
+//Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
+
 // Minimal fragment shader
 
-#version 420
+#version 330
 
 uniform sampler2D Texture;
 in vec2 Frag_UV;

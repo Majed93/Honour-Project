@@ -1,6 +1,7 @@
+//Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 
 // Specify minimum OpenGL version
-#version 400
+#version 330
 
 // Define the vertex attributes
 layout(location = 0) in vec3 position;
@@ -16,7 +17,7 @@ out vec4 fdiffusecolour, fcolour;
 // These are the uniforms that are defined in the application
 uniform mat4 model, view, projection;
 uniform mat3 normalmatrix;
-uniform uint colourmode, comp, wiremode;
+uniform uint comp, wiremode;
 uniform vec4 lightpos;
 uniform highp float color1, color2, color3, color4;
 void main()
@@ -26,10 +27,6 @@ void main()
 	vec4 newcolour = vec4(colour, 1.0);
 	float num = wiremode;
 	// Switch the vertex colour based on the colourmode
-	if (colourmode == 1)
-		fdiffusecolour = newcolour;
-	else
-		fdiffusecolour = vec4(0.50754, 0.50754, 0.50754, 1.0);
 	
 	switch (comp)
 	{

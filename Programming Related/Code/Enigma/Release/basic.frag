@@ -1,6 +1,7 @@
+//Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 // Minimal fragment shader
 // This does majority of the work for lighting
-#version 420
+#version 330
 
 // Global constants (for this vertex shader)
 vec4 specular_colour = vec4(1.0, 0.8, 0.9, 1.0);

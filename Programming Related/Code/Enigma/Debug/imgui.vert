@@ -1,5 +1,6 @@
+//Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 
-#version 420
+#version 330
 in vec2 Position;
 uniform mat4 ortho;
 in vec2 UV;
