@@ -1580,7 +1580,6 @@ void drawBuffers()
 //int main(int argc, char ** argv) //SHOWS CONSOLE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
 {
-
 	glw->setKeyCallback(keyCallback);
 	glw->setReshapeCallback(reshape);
 	glw->setMouseButtonCallback(glfw_mouse_button_callback);

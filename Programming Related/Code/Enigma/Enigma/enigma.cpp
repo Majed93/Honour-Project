@@ -27,16 +27,14 @@ char enigma::encrypt(int index)
 	char_reflect = getReflector().at(getIndex(char_rOne));
 	st_newchar = getRotorOne().find(char_reflect, 0);
 	char_letter = getAlphabet().at(st_newchar);
-	return char_letter;// machine.getRotorOne().at(st_newchar);
-
+	
 	//DEBUGGING
-	//std::cout << "Encrypt - index " << totalindex << std::endl;
-	//std::cout << "rone " << char_rOne << std::endl;//E//U
-	//std::cout << "reflect " << char_reflect << std::endl;//Q//C
-	//std::cout << "newrotor " << st_newchar << std::endl;//16//2
-	//std::cout << "letter " << char_letter << std::endl;//X//K
-	//return getRotorOne().at(st_newchar);
-	//return machine.getRotorOne().at(st_newchar);
+	std::cout << "rone " << char_rOne << std::endl;
+	std::cout << "reflect " << char_reflect << std::endl;
+	std::cout << "newrotor " << st_newchar << std::endl;
+	std::cout << "letter " << char_letter << std::endl;
+	std::cout << " " << std::endl;
+	return char_letter;// machine.getRotorOne().at(st_newchar);
 }
 
 //Decryption occurs here
@@ -48,16 +46,19 @@ char enigma::decrypt(int index, char k)
 	char_inrOne = getAlphabet().at(st_newreflect);
 	st_newchar = getRotorOne().find(char_inrOne, 0);
 	char_letter = getAlphabet().at(st_newchar);
-	return char_letter;// machine.getAlphabet().at(st_newchar);
 
 	//DEBUGGING
-	//std::cout << "Decrypt - index " << totalindex << std::endl;
-	//std::cout << "newrotor " << st_rotorone << std::endl;//16//2
-	//std::cout << "rOne " << char_rOne << std::endl;//Q//C
-	//std::cout << "newreflect " << st_newreflect << std::endl;//4//20
-	//std::cout << "in rotor one " << char_inrOne << std::endl;//E//U
-	//std::cout << "Rotor one index " << st_newchar << std::endl;//0//18
-	//std::cout << "letter " << char_letter << std::endl;//A
+	//std::cout << "newrotor " << st_rotorone << std::endl;//NOT NEEDED
+	std::cout << "rOne " << char_rOne << std::endl;
+	std::cout << "newreflect " << st_newreflect << std::endl;
+	std::cout << "in rotor one " << char_inrOne << std::endl;
+	std::cout << "Rotor one index " << st_newchar << std::endl;
+	std::cout << "letter " << char_letter << std::endl;
+	std::cout << " " << std::endl;
+
+	return char_letter;// machine.getAlphabet().at(st_newchar);
+
+
 }
 
 //Returns the alphabet string

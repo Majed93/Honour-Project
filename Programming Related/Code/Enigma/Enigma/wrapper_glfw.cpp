@@ -159,6 +159,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		//Main Menu
 		if (show_main == true)
 		{
+			//system("CLS");//CLEARS CONSOLE *****************TAKE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			if (!resized)
 			{
 				width = 400;
@@ -265,6 +266,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				setRotorOne(rotors[combopos1]);
 				setStaticrOne(rotors[combopos1]);
 				prev1 = combopos1;
+				
 			}
 
 			ImGui::SameLine();
@@ -844,7 +846,10 @@ void GLWrapper::Encrypt(char k)
 		totalindex -= 26;
 	}
 	changed[totalindex] = true;
-	
+
+	//DEBUGGING
+	std::cout << "Encrypt - index " << totalindex << std::endl;
+
 	encrypted += machine.encrypt(index);
 	machine.offset(1);
 	count += 1;
@@ -861,8 +866,8 @@ void GLWrapper::Decrypt(char k)
 		platechange[i] = false;
 	}
 	changenum = count;
-
-	int totalindex = index + changenum;
+	
+	int totalindex = index;// +changenum;
 	if (totalindex > 25)
 	{
 		totalindex -= 26;
@@ -870,7 +875,8 @@ void GLWrapper::Decrypt(char k)
 
 	changed[totalindex] = true;
 
-	//getPlain(machine.getIndex(k), k);
+	//DEBUGGING
+	std::cout << "Decrypt - index " << totalindex << std::endl;
 
 	decrypted += machine.decrypt(index, k);
 	machine.offset(1);
@@ -904,10 +910,10 @@ void GLWrapper::reset()
 		"FKQHTLXOCBJSPDZRAMEWNIUYGV" };
 	
 	std::string strReflectorArray[] = {"LEYJVCNIXWPBQMDRTAKZGFUHOS",
-	"FSOKANUERHMBTIYCWLQPZXVGJD",
-	"EJMZALYXVBWFCRQUONTSPIKHGD",
-	"YRUHQSLDPXNGOKMIEBFZCWVJAT",
-	"FVPJIAOYEDRZXWGCTKUQSBNMHL" };
+		"FSOKANUERHMBTIYCWLQPZXVGJD",
+		"EJMZALYXVBWFCRQUONTSPIKHGD",
+		"YRUHQSLDPXNGOKMIEBFZCWVJAT",
+		"FVPJIAOYEDRZXWGCTKUQSBNMHL" };
 
 	for (int i = 0; i < 7; i++)
 	{
