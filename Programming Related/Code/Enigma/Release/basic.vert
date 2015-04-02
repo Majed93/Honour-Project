@@ -1,23 +1,25 @@
 //Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 
 // Specify minimum OpenGL version
-#version 330
+#version 400
 
 // Define the vertex attributes
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 colour;
 layout(location = 2) in vec3 normal;
+layout(location = 3) in vec2 texcoord;
 
 
 // Outputs to send to the fragment shader
 out vec3 fnormal;
 out vec3 flightdir, fposition, fviewdir;
 out vec4 fdiffusecolour, fcolour;
+out vec2 ftexcoord;
 
 // These are the uniforms that are defined in the application
 uniform mat4 model, view, projection;
 uniform mat3 normalmatrix;
-uniform uint comp, wiremode;
+uniform uint comp, wiremode, textmode;
 uniform vec4 lightpos;
 uniform highp float color1, color2, color3, color4;
 void main()
@@ -87,8 +89,13 @@ void main()
 			break;
 
 		default:
-			fdiffusecolour = vec4(0.9223, 0.9754, 0.9242, 1.0);
+			fdiffusecolour = vec4(0.05, 0.05, 0.05, 1.0);
 			break;
+	}
+
+	if(textmode == 1)
+	{
+		fdiffusecolour = vec4(0.6, 0.6, 0.6, 1.0); //CONTROLS BRIGHTNESS OF TEXTURE
 	}
 
 	// Define our vectors for calculating diffuse and specular lighting
@@ -103,4 +110,6 @@ void main()
 	gl_Position = (projection * view * model) * position_h;
 
 
+	// Output texture coordinate to fragment shader
+	ftexcoord = texcoord;
 }

@@ -52,6 +52,11 @@ public:
 
 	enigma machine;
 
+	bool show_rotor, show_help;
+	bool transistion_done;
+	float transistion_current, transistion_limit;
+	float trans_inc = 2.f;
+
 	void setFPS(double fps) {
 		this->fps = fps;
 	}

@@ -130,7 +130,6 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		static bool show_encrypt = false;
 		static bool show_decrypt = false;
 		static bool show_exit = false;
-		static bool show_help = false;
 		static bool no_titlebar = true;
 		static bool no_border = true;
 		static bool no_resize = true;
@@ -140,6 +139,10 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		static bool help_nomove = false;
 		static bool help_noscrollbar = false;
 		
+		static bool rotorhelp_nomove = false;
+		static bool rotorhelp_noscrollbar = false;
+
+
 		static float fill_alpha = 0.65f;
 
 		const char* rotorno[] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII" };
@@ -150,16 +153,22 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 		const ImGuiWindowFlags layout_flags = (no_titlebar ? ImGuiWindowFlags_NoTitleBar : 0) | (no_border ? 0 : ImGuiWindowFlags_ShowBorders) | (no_resize ? ImGuiWindowFlags_NoResize : 0) | (no_move ? ImGuiWindowFlags_NoMove : 0) | (no_scrollbar ? ImGuiWindowFlags_NoScrollbar : 0);
 		const ImGuiWindowFlags help_flags = (help_notitlebar ? ImGuiWindowFlags_NoTitleBar : 0) | (no_border ? 0 : ImGuiWindowFlags_ShowBorders) | (no_resize ? ImGuiWindowFlags_NoResize : 0) | (help_nomove ? ImGuiWindowFlags_NoMove : 0) | (help_noscrollbar ? ImGuiWindowFlags_NoScrollbar : 0);
+		const ImGuiWindowFlags rotorhelp_flags = (help_notitlebar ? ImGuiWindowFlags_NoTitleBar : 0) | (no_border ? 0 : ImGuiWindowFlags_ShowBorders) | (no_resize ? ImGuiWindowFlags_NoResize : 0) | (rotorhelp_nomove ? ImGuiWindowFlags_NoMove : 0) | (rotorhelp_noscrollbar ? ImGuiWindowFlags_NoScrollbar : 0);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 1.0f)));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
 
+		if (show_rotor == false)
+		{
+			transistion_done = false;
+			transistion_current = 0.0f;
+		}
 		//Main Menu
 		if (show_main == true)
 		{
-			//system("CLS");//CLEARS CONSOLE *****************TAKE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			//system("CLS");//CLEARS CONSOLE *****************TAKE THIS OUT WHEN NOT DEBUGGING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			if (!resized)
 			{
 				width = 400;
@@ -174,6 +183,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			mode = "";
 			show_encrypt = false;
 			show_decrypt = false;
+			show_help = false;
 			
 			if (!complete)
 			{
@@ -196,287 +206,307 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 		}
 
-		//Show Encryption screen
-		if (show_encrypt == true)
+		if (transistion_done == false)
 		{
-			if (complete == true)
+			//Show Encryption screen
+			if (show_encrypt == true)
 			{
-				resized = false;
-			}
-			if (!resized)
-			{
-				width = 800;
-				height = 500;
-				glfwSetWindowSize(window, width, height);
-				const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-				glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
-				resized = true;
-			}
-			mode = "En";
-			
-			show_main = false;
-			ImGui::Begin("Encrypt", &show_encrypt, ImVec2(100, 100), fill_alpha, layout_flags);
-			//no_titlebar = false;
-			title = "Graphical Enigma Simulator - Encrypt";
-			
-			ImGui::SetWindowPos(ImVec2(0, height * 0.72f), 0);
-			ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
+				if (complete == true)
+				{
+					resized = false;
+				}
+				if (!resized)
+				{
+					width = 800;
+					height = 500;
+					glfwSetWindowSize(window, width, height);
+					const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+					glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
+					resized = true;
+				}
+				mode = "En";
 
-			/*WAS TRYING TO GET ZOOM ON MOUSE OVER MAYBE TRY LATER?
-			ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
+				show_main = false;
+				ImGui::Begin("Encrypt", &show_encrypt, ImVec2(100, 100), fill_alpha, layout_flags);
+				//no_titlebar = false;
+				title = "Graphical Enigma Simulator - Encrypt";
 
-			struct Num{
+				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transistion_current), 0);
+				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
+				if (show_rotor == true)
+				{
+					transistion_current += trans_inc;
+				}
+				
+				if (transistion_current > transistion_limit)
+				{
+					transistion_done = true;
+				}
+				/*WAS TRYING TO GET ZOOM ON MOUSE OVER MAYBE TRY LATER?
+				ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
+
+				struct Num{
 				static inline float  ImClamp(float v, float mn, float mx)                       { return (v < mn) ? mn : (v > mx) ? mx : v; }
 
-			};
+				};
 
-			float focus_sz = 16.0f;//LOWER THE MORE ZOOM
-			float tex_w = (float)ImGui::GetIO().Fonts->TexWidth;
-			float tex_h = (float)ImGui::GetIO().Fonts->TexHeight;
-			ImTextureID tex_id = ImGui::GetWindowDrawList;
+				float focus_sz = 16.0f;//LOWER THE MORE ZOOM
+				float tex_w = (float)ImGui::GetIO().Fonts->TexWidth;
+				float tex_h = (float)ImGui::GetIO().Fonts->TexHeight;
+				ImTextureID tex_id = ImGui::GetWindowDrawList;
 
-			ImGui::BeginTooltip();
+				ImGui::BeginTooltip();
 
-			float focus_x = Num::ImClamp(ImGui::GetMousePos().x - tex_screen_pos.x - focus_sz * 0.5f, 0.0f, tex_w - focus_sz);
-			float focus_y = Num::ImClamp(ImGui::GetMousePos().y - tex_screen_pos.y - focus_sz * 0.5f, 0.0f, tex_h - focus_sz);
-			ImGui::Text("Min: (%.2f, %.2f)", focus_x, focus_y);
-			ImGui::Text("Max: (%.2f, %.2f)", focus_x + focus_sz, focus_y + focus_sz);
-			ImVec2 uv0 = ImVec2((focus_x) / tex_w, (focus_y) / tex_h);
-			ImVec2 uv1 = ImVec2((focus_x + focus_sz) / tex_w, (focus_y + focus_sz) / tex_h);
-			ImGui::Image(tex_id, ImVec2(50, 50), uv0, uv1, ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 128));
-			ImGui::EndTooltip();
-			*/
-			
-			show_main ^= ImGui::Button("Back To Main Menu");
-			ImGui::SameLine();
-			show_help ^= ImGui::Button("Help");
+				float focus_x = Num::ImClamp(ImGui::GetMousePos().x - tex_screen_pos.x - focus_sz * 0.5f, 0.0f, tex_w - focus_sz);
+				float focus_y = Num::ImClamp(ImGui::GetMousePos().y - tex_screen_pos.y - focus_sz * 0.5f, 0.0f, tex_h - focus_sz);
+				ImGui::Text("Min: (%.2f, %.2f)", focus_x, focus_y);
+				ImGui::Text("Max: (%.2f, %.2f)", focus_x + focus_sz, focus_y + focus_sz);
+				ImVec2 uv0 = ImVec2((focus_x) / tex_w, (focus_y) / tex_h);
+				ImVec2 uv1 = ImVec2((focus_x + focus_sz) / tex_w, (focus_y + focus_sz) / tex_h);
+				ImGui::Image(tex_id, ImVec2(50, 50), uv0, uv1, ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 128));
+				ImGui::EndTooltip();
+				*/
 
-			ImGui::Text("Rotor #");
+				show_main ^= ImGui::Button("Back To Main Menu");
+				ImGui::SameLine();
+				show_help ^= ImGui::Button("Help");
 
-			ImGui::SameLine();
-			ImGui::Spacing();
-			ImGui::SameLine();
+				ImGui::Text("Rotor #");
 
-			ImGui::PushItemWidth(200);
-			ImGui::Combo(" ", &combopos1, rotorno, IM_ARRAYSIZE(rotorno), 4);
-			ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::Spacing();
+				ImGui::SameLine();
 
-			if (combopos1 != prev1)
-			{
-				setRotorOne(rotors[combopos1]);
-				setStaticrOne(rotors[combopos1]);
-				prev1 = combopos1;
-				
-			}
+				ImGui::PushItemWidth(200);
+				ImGui::Combo(" ", &combopos1, rotorno, IM_ARRAYSIZE(rotorno), 4);
+				ImGui::PopItemWidth();
 
-			ImGui::SameLine();
-			ImGui::Text("  ");
-			ImGui::SameLine();
-
-			ImGui::Text("Reflector #");
-
-			ImGui::SameLine();
-			ImGui::Spacing();
-			ImGui::SameLine();
-
-			ImGui::PushItemWidth(200);
-			ImGui::Combo("", &combopos2, reflectorno, IM_ARRAYSIZE(reflectorno), 4);
-			ImGui::PopItemWidth();
-
-			if (combopos2 != prev2)
-			{
-				setRelfector(reflectors[combopos2]);
-				prev2 = combopos2;
-			}
-			static float wrap_width = 10.0f;
-			
-			ImGui::PushItemWidth(width - 25);
-			ImGui::Text("Plain Text");
-			struct TextFilters {
-				static int FilterAZ(ImGuiTextEditCallbackData* data)
+				if (combopos1 != prev1)
 				{
-					ImWchar c = data->EventChar;
-					if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
-					{
-						return 1;
-					}
-					else
-					{
-						if ((c >= 'a' && c <= 'z'))
-						{
-							data->EventChar += 'A' - 'a';
-						}
-					}
-					return 0;
+					setRotorOne(rotors[combopos1]);
+					setStaticrOne(rotors[combopos1]);
+					prev1 = combopos1;
+
 				}
-			};
-			
-			if (ImGui::GetWindowIsFocused() && !ImGui::IsAnyItemActive())
-				ImGui::SetKeyboardFocusHere();
+
+				ImGui::SameLine();
+				ImGui::Text("  ");
+				ImGui::SameLine();
+
+				ImGui::Text("Reflector #");
+
+				ImGui::SameLine();
+				ImGui::Spacing();
+				ImGui::SameLine();
+
+				ImGui::PushItemWidth(200);
+				ImGui::Combo("", &combopos2, reflectorno, IM_ARRAYSIZE(reflectorno), 4);
+				ImGui::PopItemWidth();
+
+				if (combopos2 != prev2)
+				{
+					setRelfector(reflectors[combopos2]);
+					prev2 = combopos2;
+				}
+				static float wrap_width = 10.0f;
+
+				ImGui::PushItemWidth(width - 25);
+				ImGui::Text("Plain Text");
+				struct TextFilters {
+					static int FilterAZ(ImGuiTextEditCallbackData* data)
+					{
+						ImWchar c = data->EventChar;
+						if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+						{
+							return 1;
+						}
+						else
+						{
+							if ((c >= 'a' && c <= 'z'))
+							{
+								data->EventChar += 'A' - 'a';
+							}
+						}
+						return 0;
+					}
+				};
+
+				if (ImGui::GetWindowIsFocused() && !ImGui::IsAnyItemActive())
+					ImGui::SetKeyboardFocusHere();
 
 				ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
-			
-			
-			ImGui::Text("Cipher Text");
-			
-			style.ItemInnerSpacing.x = 10.f;
-			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f), ImVec2(wrap_width + width, ImGui::GetTextLineHeight()), 0xff808080);
-			ImGui::Text(encrypted.c_str());
-			
-			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, height - 15.0f), 0xff808080);
-			ImGui::PopItemWidth();
 
-			//FIX BACKSPACE
-			if (strlen(strPlain) <= encrypted.length())
-			{
-				if (strlen(strPlain) > 0)
+
+				ImGui::Text("Cipher Text");
+
+				style.ItemInnerSpacing.x = 10.f;
+				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transistion_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transistion_current), 0xff808080);
+				ImGui::Text(encrypted.c_str());
+
+				ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f + transistion_current), ImVec2(width - 11.f, height - 15.0f + transistion_current), 0xff808080);
+				ImGui::PopItemWidth();
+
+				//FIX BACKSPACE
+				if (strlen(strPlain) <= encrypted.length())
 				{
-					if ((encrypted.length() != strlen(strPlain)))
+					if (strlen(strPlain) > 0)
+					{
+						if ((encrypted.length() != strlen(strPlain)))
+						{
+							encrypted.pop_back();
+						}
+					}
+
+					//SPECIAL CASE
+					if (strlen(strPlain) < 1 && encrypted != "")
 					{
 						encrypted.pop_back();
 					}
 				}
+				complete = false;
 
-				//SPECIAL CASE
-				if (strlen(strPlain) < 1 && encrypted != "")
+
+				ImGui::End();
+			}
+
+			/***************************************************************************************************************/
+			//Show Decryption screen
+			if (show_decrypt == true)
+			{
+
+				if (complete == true)
 				{
-					encrypted.pop_back();
+					resized = false;
 				}
-			}
-			complete = false;
 
-
-			ImGui::End();
-		}
-
-		/***************************************************************************************************************/
-		//Show Decryption screen
-		if (show_decrypt == true)
-		{
-
-			if (complete == true)
-			{
-				resized = false;
-			}
-
-			if (!resized)
-			{
-				width = 800;
-				height = 500;
-				glfwSetWindowSize(window, width, height);
-				const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-				glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
-				resized = true;
-			}
-			mode = "De";
-			show_main = false;
-
-			ImGui::Begin("", &show_decrypt, ImVec2(100, 100), fill_alpha, layout_flags);
-			title = "Graphical Enigma Simulator - Decrypt";
-			
-			ImGui::SetWindowPos(ImVec2(0, height * 0.72f), 0);
-			ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
-
-			show_main ^= ImGui::Button("Back To Main Menu");
-			ImGui::SameLine();
-			show_help ^= ImGui::Button("Help");
-
-			ImGui::Text("Rotor #");
-
-			ImGui::SameLine();
-			ImGui::Spacing();
-			ImGui::SameLine();
-
-			ImGui::PushItemWidth(200);
-			ImGui::Combo(" ", &combopos1, rotorno, IM_ARRAYSIZE(rotorno), 4);
-			ImGui::PopItemWidth();
-
-			if (combopos1 != prev1)
-			{
-				setRotorOne(rotors[combopos1]);
-				setStaticrOne(rotors[combopos1]);
-				prev1 = combopos1;
-			}
-
-			ImGui::SameLine();
-			ImGui::Text("  ");
-			ImGui::SameLine();
-
-			ImGui::Text("Reflector #");
-
-			ImGui::SameLine();
-			ImGui::Spacing();
-			ImGui::SameLine();
-
-			ImGui::PushItemWidth(200);
-			ImGui::Combo("", &combopos2, reflectorno, IM_ARRAYSIZE(reflectorno), 4);
-			ImGui::PopItemWidth();
-
-			if (combopos2 != prev2)
-			{
-				setRelfector(reflectors[combopos2]);
-				prev2 = combopos2;
-			}
-
-			static float wrap_width = 10.0f;
-
-			ImGui::PushItemWidth(width - 25);
-			ImGui::Text("Plain Text");
-			
-			style.ItemInnerSpacing.x = 10.f;
-			ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f), ImVec2(wrap_width + width, ImGui::GetTextLineHeight()), 0xff808080);
-			ImGui::Text(decrypted.c_str());
-
-			ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f), ImVec2(width - 11.f, height - 55.0f), 0xff808080);
-
-			ImGui::Text("Cipher Text");
-			
-			struct TextFilters {
-				static int FilterAZ(ImGuiTextEditCallbackData* data)
+				if (!resized)
 				{
-					ImWchar c = data->EventChar;
-					if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+					width = 800;
+					height = 500;
+					glfwSetWindowSize(window, width, height);
+					const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+					glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
+					resized = true;
+				}
+				mode = "De";
+				show_main = false;
+
+				ImGui::Begin("", &show_decrypt, ImVec2(100, 100), fill_alpha, layout_flags);
+				title = "Graphical Enigma Simulator - Decrypt";
+
+				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transistion_current), 0);
+				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
+				if (show_rotor == true)
+				{
+					transistion_current += trans_inc;
+				}
+
+				if (transistion_current > transistion_limit)
+				{
+					transistion_done = true;
+				}
+
+				show_main ^= ImGui::Button("Back To Main Menu");
+				ImGui::SameLine();
+				show_help ^= ImGui::Button("Help");
+
+				ImGui::Text("Rotor #");
+
+				ImGui::SameLine();
+				ImGui::Spacing();
+				ImGui::SameLine();
+
+				ImGui::PushItemWidth(200);
+				ImGui::Combo(" ", &combopos1, rotorno, IM_ARRAYSIZE(rotorno), 4);
+				ImGui::PopItemWidth();
+
+				if (combopos1 != prev1)
+				{
+					setRotorOne(rotors[combopos1]);
+					setStaticrOne(rotors[combopos1]);
+					prev1 = combopos1;
+				}
+
+				ImGui::SameLine();
+				ImGui::Text("  ");
+				ImGui::SameLine();
+
+				ImGui::Text("Reflector #");
+
+				ImGui::SameLine();
+				ImGui::Spacing();
+				ImGui::SameLine();
+
+				ImGui::PushItemWidth(200);
+				ImGui::Combo("", &combopos2, reflectorno, IM_ARRAYSIZE(reflectorno), 4);
+				ImGui::PopItemWidth();
+
+				if (combopos2 != prev2)
+				{
+					setRelfector(reflectors[combopos2]);
+					prev2 = combopos2;
+				}
+
+				static float wrap_width = 10.0f;
+
+				ImGui::PushItemWidth(width - 25);
+				ImGui::Text("Plain Text");
+
+				style.ItemInnerSpacing.x = 10.f;
+				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transistion_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transistion_current), 0xff808080);
+				ImGui::Text(decrypted.c_str());
+
+				ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f + transistion_current), ImVec2(width - 11.f, height - 55.0f + transistion_current), 0xff808080);
+
+				ImGui::Text("Cipher Text");
+
+				struct TextFilters {
+					static int FilterAZ(ImGuiTextEditCallbackData* data)
 					{
-						return 1;
-					}
-					else
-					{
-						if ((c >= 'a' && c <= 'z'))
+						ImWchar c = data->EventChar;
+						if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
 						{
-							data->EventChar += 'A' - 'a';
+							return 1;
+						}
+						else
+						{
+							if ((c >= 'a' && c <= 'z'))
+							{
+								data->EventChar += 'A' - 'a';
+							}
+						}
+						return 0;
+					}
+				};
+
+				if (ImGui::GetWindowIsFocused() && !ImGui::IsAnyItemActive())
+					ImGui::SetKeyboardFocusHere();
+
+				ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
+				ImGui::PopItemWidth();
+
+				//FIX BACKSPACE
+				if (strlen(strCipher) <= decrypted.length())
+				{
+					if (strlen(strCipher) > 0)
+					{
+						if ((decrypted.length() != strlen(strCipher)))
+						{
+							decrypted.pop_back();
 						}
 					}
-					return 0;
-				}
-			};
-
-			if (ImGui::GetWindowIsFocused() && !ImGui::IsAnyItemActive())
-				ImGui::SetKeyboardFocusHere();
-
-			ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
-			ImGui::PopItemWidth();
-
-			//FIX BACKSPACE
-			if (strlen(strCipher) <= decrypted.length())
-			{
-				if (strlen(strCipher) > 0)
-				{
-					if ((decrypted.length() != strlen(strCipher)))
+					//SPECIAL CASE
+					if (strlen(strCipher) < 1 && decrypted != "")
 					{
 						decrypted.pop_back();
 					}
 				}
-				//SPECIAL CASE
-				if (strlen(strCipher) < 1 && decrypted != "")
-				{
-					decrypted.pop_back();
-				}
-			}
-			complete = false;
-			
-			ImGui::End();
-		}
+				complete = false;
 
+				ImGui::End();
+			}
+
+		}
 		//Help Screen
 		if (show_help == true)
 		{
@@ -484,6 +514,11 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::PushStyleColor(ImGuiCol_CloseButton, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 1.0f)));
 			ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
 			ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
+			
+			ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImColor::ImColor(ImVec4(0.15f, 0.15f, 0.15f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
 
 
 			help_notitlebar = false;
@@ -495,6 +530,10 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::SetWindowSize(ImVec2(300, 250), 0);
 
 			ImGui::TextWrapped("Graphical Enigma Simulator.");
+
+			show_rotor ^= ImGui::Button("Show Rotor Details");
+
+			ImGui::TextWrapped("Please refer to user guide for more information.");
 
 			ImGui::Spacing();
 
@@ -548,15 +587,45 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::TextWrapped("Left Square Bracket ('['): Move up");
 			ImGui::TextWrapped("Right Square Bracket (']'): Move down");
 
-
+			if (show_rotor == true)
+			{
+				ImGui::SetWindowCollapsed(true);
+			}
+			else
+			{
+				ImGui::SetWindowCollapsed(false);
+			}
 			ImGui::End();
-			ImGui::PopStyleColor(4);
+			ImGui::PopStyleColor(8);
 
 		}
 
 		//Exit Application
 		if(show_exit == true){
 			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+
+		if (show_rotor == true)
+		{
+			//std::cout << transistion_current << std::endl;
+			
+			ImGui::PushStyleColor(ImGuiCol_TitleBg, ImColor::ImColor(ImVec4(0.15f, 0.15f, 0.15f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButton, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
+
+
+			rotorhelp_nomove = true;
+			rotorhelp_noscrollbar = true;
+
+			ImGui::Begin("Rotor Details", &show_rotor, ImVec2(450, 460), 0.0f, rotorhelp_flags);
+
+			
+			ImGui::SetWindowPos(ImVec2((width / 2) - (450 / 2), (height / 2) - (460 / 2)));
+
+			ImGui::End();
+			ImGui::PopStyleColor(4);
+
 		}
 
 		ImGui::PopStyleColor(3);
@@ -934,5 +1003,9 @@ void GLWrapper::reset()
 	
 	complete = true;
 	resized = false;
+	show_rotor = false;
+	transistion_current = 0.0f;
+	transistion_limit = height - 175.0f;
+	transistion_done = false;
 }
 

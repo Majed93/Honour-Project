@@ -1,19 +1,21 @@
 //Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 // Minimal fragment shader
 // This does majority of the work for lighting
-#version 330
+#version 400
 
 // Global constants (for this vertex shader)
-vec4 specular_colour = vec4(1.0, 0.8, 0.9, 1.0);
-vec4 global_ambient = vec4(0.5, 0.2, 0.1, 0.9);
+vec4 specular_colour = vec4(0.1, 0.1, 0.1, 1.0);
+vec4 global_ambient = vec4(0.1, 0.1, 0.1, 0.9);
 float  shininess = 8;
 
 // Inputs from the vertex shader
 in vec3 fnormal, flightdir, fposition, fviewdir;
 in vec4 fdiffusecolour, fambientcolour, fcolour;
 //in float distancetolight;
+in vec2 ftexcoord;	// This is the rasterized texture coordinate
+uniform sampler2D tex1;	// This is the texture object
 
-uniform uint colourmode, emitmode, comp;
+uniform uint colourmode, emitmode, comp, textmode;
 //varying vec2 v_texcoord;
 // Output pixel fragment colour
 out vec4 outputColor;
@@ -21,6 +23,11 @@ out vec4 outputColor;
 
 void main()
 {
+
+		// Extract the texture colour to colour our pixel
+		vec4 texcolour = texture(tex1, ftexcoord);
+
+
 		switch (comp)
 		{
 			case 0:
@@ -117,6 +124,15 @@ void main()
 		vec4 emissive = vec4(0);				// Create a vec4(0, 0, 0) for our emmissive light
 		vec4 fambientcolour = fdiffusecolour * 3.99;
 		vec4 fspecularcolour =  vec4(0.8, 0.8, 0.55, 1.0);
+
+		if(textmode == 1)
+		{
+				specular_colour = vec4(1.0, 0.908273, 0.908273, 1.0);
+				global_ambient = vec4(0.1, 0.1, 0.1, 1.0);
+				shininess = 0.9 * 128;
+				fambientcolour = fdiffusecolour * 8.9;
+				fspecularcolour =  vec4(1.0, 0.8, 0.0, 1.0);
+		}
 		float distancetolight = length(flightdir);
 
 		// Normalise interpolated vectors
@@ -149,7 +165,15 @@ void main()
 		// Note that you may want to exclude the ambient form the attenuation factor so objects
 		// are always visible, or include a global ambient
 
-		outputColor = attenuation*(fambientcolour + diffuse + specular) + emissive + global_ambient;
-	
+		if (textmode == 1)
+		{
+		
+			vec4 texture_diffuse = (fambientcolour + diffuse) * texcolour;
+			outputColor = attenuation*(texture_diffuse + specular) + emissive + global_ambient;
+		}
+		else
+		{
+			outputColor = attenuation*(fambientcolour + diffuse + specular) + emissive + global_ambient;
+		}
 }
 

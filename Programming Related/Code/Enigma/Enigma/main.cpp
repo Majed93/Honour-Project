@@ -11,6 +11,11 @@ and code which would be helpful for future development.
 #pragma clang diagnostic ignored "-Wunused-function"   // warning: unused function
 #endif
 
+#pragma comment(lib, "soil.lib")
+#pragma comment(lib, "glfw3.lib")
+#pragma comment(lib, "glloadD.lib")
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "glew32s.lib")
 
 #include "imgui.h"
 #include <Windows.h>
@@ -33,7 +38,7 @@ and code which would be helpful for future development.
 #include "glm/gtc/random.hpp"
 
 #include "object_ldr.h"
-
+#include <SOIL.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -43,6 +48,7 @@ and code which would be helpful for future development.
 GLuint program[2];
 GLuint vao, current;
 GLuint positionBufferObject, colourObject;
+
 
 /* Position and view globals */
 GLfloat angle_x, angle_x_inc;
@@ -71,10 +77,12 @@ GLfloat* line_vertex;
 GLboolean done = false;
 
 /* Uniforms*/
-GLuint modelID, viewID, projectionID, normalmatrixID, lightposID, componentID, color1ID, color2ID, color3ID, color4ID, emitmodeID;
-glm::mat4 model, view;
+GLuint modelID, viewID, projectionID, normalmatrixID, lightposID, componentID, color1ID, color2ID, color3ID, color4ID, emitmodeID, textmodeID;
+glm::mat4 model, view, projection;
+glm::vec4 lightpos;
+glm::mat3 normalmatrix;
 
-GLuint comp, emitmode;
+GLuint comp, emitmode, textmode;
 GLfloat color4;
 GLfloat aspect_ratio;		/* Aspect ratio of the window defined in the reshape callback*/
 
@@ -103,8 +111,14 @@ static int position_location, uv_location, colour_location;
 static size_t vbo_max_size = 20000;
 static unsigned int vbo_handle, vao_handle;
 
+
+GLuint texID, texCoordsObject;
+GLuint textpositionBufferObject, textcolourObject, textnormalsBufferObject;
+
+
 //Function definitions as required
 void display();
+void displayHelp();
 void drawObjects();
 void drawPlates();
 void drawPins();
@@ -229,36 +243,16 @@ void display() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(program[1]);
-	//glBindVertexArray(vao);
-	//glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
-	//glEnableVertexAttribArray(0);
-
-	///* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
-	//index relates to the layout qualifier in the vertex shader and in
-	//glEnableVertexAttribArray() and glDisableVertexAttribArray() */
-	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, colourObject);
-	//glEnableVertexAttribArray(1);
-
-	///* glVertexAttribPointer(index, size, type, normalised, stride, pointer)
-	//index relates to the layout qualifier in the vertex shader and in
-	//glEnableVertexAttribArray() and glDisableVertexAttribArray() */
-	//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-
+	
 	// Model matrix : an identity matrix (model will be at the origin)
 	model = glm::mat4(1.0f);
 
-	//model = glm::rotate(model, -angle_x, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
-	//model = glm::rotate(model, -angle_z, glm::vec3(0, 0, 1)); //rotate z axis
-	//model = glm::rotate(model, -angle_y, glm::vec3(0, 1, 0)); //rotate y axis
 	model = glm::translate(model, glm::vec3(x, y, z));
 	model = glm::scale(model, glm::vec3(scale, scale, scale));
 	
 	// Send our transformations to the currently bound shader,
 
-	glm::mat4 projection = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
+	projection = glm::perspective(80.0f, aspect_ratio, 0.1f, 100.0f);
 
 	view = glm::lookAt(
 		glm::vec3(vx, vy, vz),
@@ -272,8 +266,8 @@ void display() {
 	view = glm::rotate(view, -angle_z, glm::vec3(0, 0, 1));
 
 
-	glm::mat3 normalmatrix = glm::transpose(glm::inverse(glm::mat3(view * model)));
-	glm::vec4 lightpos = view *  glm::vec4(lightx, lighty, lightz, 1.0);
+	normalmatrix = glm::transpose(glm::inverse(glm::mat3(view * model)));
+	lightpos = view *  glm::vec4(lightx, lighty, lightz, 1.0);
 
 	
 
@@ -288,6 +282,11 @@ void display() {
 	
 	drawObjects();
 
+	if (glw->show_rotor == true)
+	{
+		displayHelp();
+	}
+
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 
@@ -295,12 +294,63 @@ void display() {
 	glBindVertexArray(0);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
-
-	/* Modify our animation variables */
-	
-	scale += scale_inc;
 }
 
+void displayHelp()
+{
+	/*DRAW OUR HELP GUIDE*/
+	//Make view front on
+	view = glm::lookAt(
+		glm::vec3(0, 0, 4),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0, 1, 0)
+		);
+
+	textmode = 1;
+	glUniform1ui(textmodeID, textmode);
+
+	/* Bind cube vertices. Note that this is in attribute index 0 */
+	glBindBuffer(GL_ARRAY_BUFFER, textpositionBufferObject);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	/* Bind cube colours. Note that this is in attribute index 1 */
+	glBindBuffer(GL_ARRAY_BUFFER, textcolourObject);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	/* Bind cube normals. Note that this is in attribute index 2 */
+	glEnableVertexAttribArray(2);
+	glBindBuffer(GL_ARRAY_BUFFER, textnormalsBufferObject);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	/* Bind cube texture coords. Note that this is in attribute index 3 */
+	glEnableVertexAttribArray(3);
+	glBindBuffer(GL_ARRAY_BUFFER, texCoordsObject);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, z));
+	model = glm::scale(model, glm::vec3(12, 12, -0.00000000001f));//scale equally in all axis
+	model = glm::rotate(model, 0.0f, glm::vec3(0, 1, 0)); //rotating in clockwise direction around y-axis to make it face user
+
+	lightpos = view *  glm::vec4(0.0f, 0.0f, -2.5f, 1.0);
+
+	// Send our uniforms variables to the currently bound shader,
+	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(viewID, 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(projectionID, 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix3fv(normalmatrixID, 1, GL_FALSE, &normalmatrix[0][0]);
+	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
+
+	/* Draw our texture*/
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	textmode = 0;
+	glUniform1ui(textmodeID, textmode);
+
+}
 //Paste. Disabled due to bug
 static const char* ImImpl_GetClipboardTextFn()
 {
@@ -333,45 +383,50 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 */
 	
 	//64 and 90 are all alphabet values
-	if (k > 64 && k < 91 && action == GLFW_PRESS && strlen(glw->strPlain) < 95)
-	{
-		//std::cout << "letter code :" << k << std::endl;
-		if (glw->mode == "En")
-		{
-			glw->Encrypt((char)k);
-		}
-		else if (glw->mode == "De")
-		{
-			glw->Decrypt((char)k);
-		}
-	}
-
-	//Spacebar
-	else if (k == 32)
+	//WHILE HELP MENUS ARE NOT ACTIVE
+	if (glw->show_rotor == false || glw->show_help == false)
 	{
 
-	}
-	
-	//Backspace
-	if (k == 259 && action == GLFW_PRESS)
-	{
-		if ((glw->encrypted != "" || glw->decrypted != "") )
+		if (k > 64 && k < 91 && action == GLFW_PRESS && strlen(glw->strPlain) < 95)
 		{
+			//std::cout << "letter code :" << k << std::endl;
 			if (glw->mode == "En")
 			{
-				glw->encrypted.erase(glw->encrypted.end() - 1);
-				glw->machine.offset(-1);
-				glw->count--;
+				glw->Encrypt((char)k);
 			}
 			else if (glw->mode == "De")
 			{
-				glw->decrypted.erase(glw->decrypted.end() - 1);
-				glw->machine.offset(-1);
-				glw->count--;
+				glw->Decrypt((char)k);
+			}
+		}
+
+		//Spacebar
+		else if (k == 32)
+		{
+
+		}
+
+		//Backspace
+		if (k == 259 && action == GLFW_PRESS)
+		{
+			if ((glw->encrypted != "" || glw->decrypted != ""))
+			{
+				if (glw->mode == "En")
+				{
+					glw->encrypted.erase(glw->encrypted.end() - 1);
+					glw->machine.offset(-1);
+					glw->count--;
+				}
+				else if (glw->mode == "De")
+				{
+					glw->decrypted.erase(glw->decrypted.end() - 1);
+					glw->machine.offset(-1);
+					glw->count--;
+				}
 			}
 		}
 	}
-	
+
 	if (k == GLFW_KEY_LEFT) angle_y -= 0.5f;
 
 	if (k == GLFW_KEY_RIGHT) angle_y += 0.5f;
@@ -1081,19 +1136,13 @@ void calculateXZ()
 {
 	for (int i = 0; i < 26; i++)
 	{
+		//1.51 is the radius of the circle at which the whole are cut out at
 		float angle = slice * i;
 		platex[i] = (1.51 / 4) * cos(angle);
 		platez[i] = (1.51 / 4) * sin(angle);
 		pinx[i] = (1.51 / 4) * cos(angle);
 		pinz[i] = (1.51 / 4) * sin(angle);
 
-		/*std::cout << i << ": ";
-		std::cout << "platex: " << platex[i];
-		std::cout << ", platez: " << platez[i];
-		std::cout << "||";
-		std::cout << "pinx: " << pinx[i];
-		std::cout << ", pinz: " << pinz[i] << std::endl;
-		*/
 	}
 }
 
@@ -1265,118 +1314,6 @@ GLuint mapAlphabet(int number, int type)
 	}
 
 	return character;
-
-	/*switch (letter)
-	{
-	case 'A':
-		character = 0;
-		break;
-
-	case 'B':
-		character = 1;
-		break;
-
-	case 'C':
-		character = 2;
-		break;
-
-	case 'D':
-		character = 3;
-		break;
-
-	case 'E':
-		character = 4;
-		break;
-
-	case 'F':
-		character = 5;
-		break;
-
-	case 'G':
-		character = 6;
-		break;
-
-	case 'H':
-		character = 7;
-		break;
-
-	case 'I':
-		character = 8;
-		break;
-
-	case 'J':
-		character = 9;
-		break;
-
-	case 'K':
-		character = 10;
-		break;
-
-	case 'L':
-		character = 11;
-		break;
-
-	case 'M':
-		character = 12;
-		break;
-
-	case 'N':
-		character = 13;
-		break;
-
-	case 'O':
-		character = 14;
-		break;
-
-	case 'P':
-		character = 15;
-		break;
-
-	case 'Q':
-		character = 16;
-		break;
-
-	case 'R':
-		character = 17;
-		break;
-
-	case 'S':
-		character = 18;
-		break;
-
-	case 'T':
-		character = 19;
-		break;
-
-	case 'U':
-		character = 20;
-		break;
-
-	case 'V':
-		character = 21;
-		break;
-
-	case 'W':
-		character = 22;
-		break;
-
-	case 'X':
-		character = 23;
-		break;
-
-	case 'Y':
-		character = 24;
-		break;
-
-	case 'Z':
-		character = 25;
-		break;
-
-	default:
-		break;
-
-	}
-	return character;*/
 }
 
 //Make line thicker
@@ -1477,6 +1414,151 @@ void init(GLWrapper *glw)
 
 	createObjects();
 
+	/* Define vertices for a cube in 12 triangles */
+	GLfloat vertexPositions[] =
+	{
+		-0.25f, 0.25f, -0.25f,
+		-0.25f, -0.25f, -0.25f,
+		0.25f, -0.25f, -0.25f,
+
+		0.25f, -0.25f, -0.25f,
+		0.25f, 0.25f, -0.25f,
+		-0.25f, 0.25f, -0.25f,
+
+		0.25f, -0.25f, -0.25f,
+		0.25f, -0.25f, 0.25f,
+		0.25f, 0.25f, -0.25f,
+
+		0.25f, -0.25f, 0.25f,
+		0.25f, 0.25f, 0.25f,
+		0.25f, 0.25f, -0.25f,
+
+		0.25f, -0.25f, 0.25f,
+		-0.25f, -0.25f, 0.25f,
+		0.25f, 0.25f, 0.25f,
+
+		-0.25f, -0.25f, 0.25f,
+		-0.25f, 0.25f, 0.25f,
+		0.25f, 0.25f, 0.25f,
+
+		-0.25f, -0.25f, 0.25f,
+		-0.25f, -0.25f, -0.25f,
+		-0.25f, 0.25f, 0.25f,
+
+		-0.25f, -0.25f, -0.25f,
+		-0.25f, 0.25f, -0.25f,
+		-0.25f, 0.25f, 0.25f,
+
+		-0.25f, -0.25f, 0.25f,
+		0.25f, -0.25f, 0.25f,
+		0.25f, -0.25f, -0.25f,
+
+		0.25f, -0.25f, -0.25f,
+		-0.25f, -0.25f, -0.25f,
+		-0.25f, -0.25f, 0.25f,
+
+		-0.25f, 0.25f, -0.25f,
+		0.25f, 0.25f, -0.25f,
+		0.25f, 0.25f, 0.25f,
+
+		0.25f, 0.25f, 0.25f,
+		-0.25f, 0.25f, 0.25f,
+		-0.25f, 0.25f, -0.25f,
+	};
+
+	/* Manually specified colours for our cube */
+	float vertexColours[] = {
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+	};
+
+	/* Manually specified normals for our cube */
+	GLfloat normals[] =
+	{
+		0, 0, -1.f, 0, 0, -1.f, 0, 0, -1.f,
+		0, 0, -1.f, 0, 0, -1.f, 0, 0, -1.f,
+		1.f, 0, 0, 1.f, 0, 0, 1.f, 0, 0,
+		1.f, 0, 0, 1.f, 0, 0, 1.f, 0, 0,
+		0, 0, 1.f, 0, 0, 1.f, 0, 0, 1.f,
+		0, 0, 1.f, 0, 0, 1.f, 0, 0, 1.f,
+		-1.f, 0, 0, -1.f, 0, 0, -1.f, 0, 0,
+		-1.f, 0, 0, -1.f, 0, 0, -1.f, 0, 0,
+		0, -1.f, 0, 0, -1.f, 0, 0, -1.f, 0,
+		0, -1.f, 0, 0, -1.f, 0, 0, -1.f, 0,
+		0, 1.f, 0, 0, 1.f, 0, 0, 1.f, 0,
+		0, 1.f, 0, 0, 1.f, 0, 0, 1.f, 0,
+	};
+
+	GLfloat texcoords[] =
+	{
+		0, 1.f, 0, 0, 1.f, 0,
+		1.f, 0, 1.f, 1.f, 0, 1.f
+	};//ONLY NEEDED THESE BECAUE CUBE BEING SCALED TO SQUARE
+
+	/* Create the vertex buffer for the cube */
+	glGenBuffers(1, &textpositionBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, textpositionBufferObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	/* Create the colours buffer for the cube */
+	glGenBuffers(1, &textcolourObject);
+	glBindBuffer(GL_ARRAY_BUFFER, textcolourObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColours), vertexColours, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	/* Create the normals  buffer for the cube */
+	glGenBuffers(1, &textnormalsBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, textnormalsBufferObject);
+	glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(glm::vec3), normals, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	/* Create the texture coordinate  buffer for the cube */
+	glGenBuffers(1, &texCoordsObject);
+	glBindBuffer(GL_ARRAY_BUFFER, texCoordsObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
 	/* Define uniforms to send to vertex shader */
 	modelID = glGetUniformLocation(program[1], "model");
 	viewID = glGetUniformLocation(program[1], "view");
@@ -1490,7 +1572,40 @@ void init(GLWrapper *glw)
 	color3ID = glGetUniformLocation(program[1], "color3");
 	color4ID = glGetUniformLocation(program[1], "color4");
 	emitmodeID = glGetUniformLocation(program[1], "emitmode");
+	textmodeID = glGetUniformLocation(program[1], "textmode");
 
+	/* Load a texture */
+	try
+	{
+		/* Not actually needed if using one texture at a time */
+		glActiveTexture(GL_TEXTURE1);
+
+		/* load an image file directly as a new OpenGL texture */
+		texID = SOIL_load_OGL_texture("rotordetails.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+
+		/* check for an error during the load process */
+		if (texID == 0)
+		{
+			printf("Texture ID1 SOIL loading error: '%s'\n", SOIL_last_result());
+		}
+
+
+		int loc = glGetUniformLocation(program[1], "tex1");
+		if (loc >= 0) glUniform1i(loc, 0);
+	}
+	catch (std::exception &e)
+	{
+		printf("\nImage file loading failed.");
+	}
+
+	//These make the texture look sharper!
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 }
 
 //Loads texture for fonts
@@ -1576,7 +1691,6 @@ void drawBuffers()
 }
 
 //Main Application Code
-
 //int main(int argc, char ** argv) //SHOWS CONSOLE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
 {
