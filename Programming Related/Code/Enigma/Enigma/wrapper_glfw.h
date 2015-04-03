@@ -14,7 +14,7 @@ Majed Monem 2014/15 Graphical Enigma Simulator Honours Project
 #include "enigma.h"
 
 #define GLEW_STATIC
-#include <GL/glew.h>
+#include <glew.h>
 #include <GLFW/glfw3.h>
 #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
 

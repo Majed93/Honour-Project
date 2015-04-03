@@ -16,7 +16,7 @@
 #include "enigma.h"
 // Glfw/Glew
 #define GLEW_STATIC
-#include <GL/glew.h>
+#include <glew.h>
 #include <GLFW/glfw3.h>
 
 #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
