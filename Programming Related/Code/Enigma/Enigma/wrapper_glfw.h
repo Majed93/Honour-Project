@@ -53,8 +53,8 @@ public:
 	enigma machine;
 
 	bool show_rotor, show_help;
-	bool transistion_done;
-	float transistion_current, transistion_limit;
+	bool transition_done;
+	float transition_current, transition_limit;
 	float trans_inc = 2.f;
 
 	void setFPS(double fps) {

@@ -162,8 +162,12 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 		if (show_rotor == false)
 		{
-			transistion_done = false;
-			transistion_current = 0.0f;
+			transition_done = false;
+			//transistion_current = 0.0f;
+			if (transition_current >= 0.0f)
+			{
+				transition_current -= trans_inc;
+			}
 		}
 		//Main Menu
 		if (show_main == true)
@@ -206,7 +210,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 		}
 
-		if (transistion_done == false)
+		if (transition_done == false)
 		{
 			//Show Encryption screen
 			if (show_encrypt == true)
@@ -231,16 +235,16 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				//no_titlebar = false;
 				title = "Graphical Enigma Simulator - Encrypt";
 
-				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transistion_current), 0);
+				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transition_current), 0);
 				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
 				if (show_rotor == true)
 				{
-					transistion_current += trans_inc;
+					transition_current += trans_inc;
 				}
 				
-				if (transistion_current > transistion_limit)
+				if (transition_current > transition_limit)
 				{
-					transistion_done = true;
+					transition_done = true;
 				}
 				/*WAS TRYING TO GET ZOOM ON MOUSE OVER MAYBE TRY LATER?
 				ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
@@ -340,10 +344,10 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::Text("Cipher Text");
 
 				style.ItemInnerSpacing.x = 10.f;
-				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transistion_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transistion_current), 0xff808080);
+				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transition_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transition_current), 0xff808080);
 				ImGui::Text(encrypted.c_str());
 
-				ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f + transistion_current), ImVec2(width - 11.f, height - 15.0f + transistion_current), 0xff808080);
+				ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f + transition_current), ImVec2(width - 11.f, height - 15.0f + transition_current), 0xff808080);
 				ImGui::PopItemWidth();
 
 				//FIX BACKSPACE
@@ -394,16 +398,16 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::Begin("", &show_decrypt, ImVec2(100, 100), fill_alpha, layout_flags);
 				title = "Graphical Enigma Simulator - Decrypt";
 
-				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transistion_current), 0);
+				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transition_current), 0);
 				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
 				if (show_rotor == true)
 				{
-					transistion_current += trans_inc;
+					transition_current += trans_inc;
 				}
 
-				if (transistion_current > transistion_limit)
+				if (transition_current > transition_limit)
 				{
-					transistion_done = true;
+					transition_done = true;
 				}
 
 				show_main ^= ImGui::Button("Back To Main Menu");
@@ -453,10 +457,10 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::Text("Plain Text");
 
 				style.ItemInnerSpacing.x = 10.f;
-				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transistion_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transistion_current), 0xff808080);
+				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transition_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transition_current), 0xff808080);
 				ImGui::Text(decrypted.c_str());
 
-				ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f + transistion_current), ImVec2(width - 11.f, height - 55.0f + transistion_current), 0xff808080);
+				ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemBoxMin().x - 2.f, ImGui::GetItemBoxMin().y + ImGui::GetTextLineHeight() - 15.f + transition_current), ImVec2(width - 11.f, height - 55.0f + transition_current), 0xff808080);
 
 				ImGui::Text("Cipher Text");
 
@@ -528,6 +532,11 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::Begin("Help", &show_help, ImVec2(300, 250), 0.95f, help_flags);
 			
 			ImGui::SetWindowSize(ImVec2(300, 250), 0);
+
+			if (show_rotor == true)
+			{
+				ImGui::SetWindowPos(ImVec2((width/1.25), (height / 12)), 0);
+			}
 
 			ImGui::TextWrapped("Graphical Enigma Simulator.");
 
@@ -618,15 +627,23 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			rotorhelp_nomove = true;
 			rotorhelp_noscrollbar = true;
 
-			ImGui::Begin("Rotor Details", &show_rotor, ImVec2(450, 460), 0.0f, rotorhelp_flags);
+			//CAN'T GET IT TO BE ALIGNED WITH IMAGE!
+			ImGui::Begin("Rotor Details", &show_rotor, ImVec2((width / 2.2), 100), 0.0f, rotorhelp_flags);
 
 			
-			ImGui::SetWindowPos(ImVec2((width / 2) - (450 / 2), (height / 2) - (460 / 2)));
+			ImGui::SetWindowPos(ImVec2((width / 2) - ((width / 2.2) / 2), 25.0f));
 
 			ImGui::End();
 			ImGui::PopStyleColor(4);
 
 		}
+
+		//TO ENSURE THE FUNCTIONS COME BACK
+		if (show_help == false)
+		{
+			show_rotor = false;
+		}
+
 
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar();
@@ -1004,8 +1021,8 @@ void GLWrapper::reset()
 	complete = true;
 	resized = false;
 	show_rotor = false;
-	transistion_current = 0.0f;
-	transistion_limit = height - 175.0f;
-	transistion_done = false;
+	transition_current = 0.0f;
+	transition_limit = height - 175.0f;
+	transition_done = false;
 }
 
