@@ -351,6 +351,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::PopItemWidth();
 
 				//FIX BACKSPACE
+				
 				if (strlen(strPlain) <= encrypted.length())
 				{
 					if (strlen(strPlain) > 0)
@@ -570,7 +571,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::Spacing();
 
-			ImGui::TextWrapped("DO NOT HOLD LETTERS DOWN AS THE ROTOR CAN ONLY DO ONE LETTER AT A TIME");
+			ImGui::TextWrapped("DO NOT HOLD LETTERS DOWN AS THE ROTOR CAN ONLY DO ONE LETTER AT A TIME. ESPECIALLY THE BACKSPACE KEY AS THIS WILL RESULT IN THE OUTPUT TEXT BEING INCORRECT!");
 
 			ImGui::Spacing();
 

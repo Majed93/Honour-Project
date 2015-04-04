@@ -407,6 +407,7 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 		}
 
 		//Backspace
+		
 		if (k == 259 && action == GLFW_PRESS)
 		{
 			if ((glw->encrypted != "" || glw->decrypted != ""))
@@ -425,6 +426,7 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 				}
 			}
 		}
+		
 	}
 
 	if (k == GLFW_KEY_LEFT) angle_y -= 0.5f;

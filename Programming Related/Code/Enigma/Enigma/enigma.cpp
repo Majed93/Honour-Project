@@ -149,6 +149,7 @@ void enigma::offset(int dir)
 	}
 	
 	setRotorOne(newcode);
+	//std::cout << newcode << std::endl;
 }
 
 //This is bad of doing it, change later if time.
