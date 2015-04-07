@@ -414,15 +414,13 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 			{
 				if (glw->mode == "En")
 				{
-					glw->encrypted.erase(glw->encrypted.end() - 1);
-					glw->machine.offset(-1);
-					glw->count--;
+					glw->calculated = false;
+					glw->count = 0;
 				}
 				else if (glw->mode == "De")
 				{
-					glw->decrypted.erase(glw->decrypted.end() - 1);
-					glw->machine.offset(-1);
-					glw->count--;
+					glw->calculated = false;
+					glw->count = 0;
 				}
 			}
 		}
@@ -1693,8 +1691,8 @@ void drawBuffers()
 }
 
 //Main Application Code
-//int main(int argc, char ** argv) //SHOWS CONSOLE
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
+int main(int argc, char ** argv) //SHOWS CONSOLE
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
 {
 	glw->setKeyCallback(keyCallback);
 	glw->setReshapeCallback(reshape);

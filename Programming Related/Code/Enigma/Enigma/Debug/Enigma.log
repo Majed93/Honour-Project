@@ -1,7 +1,7 @@
-﻿Build started 04/04/2015 18:00:47.
+﻿Build started 06/04/2015 12:03:19.
      1>Project "C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\Enigma.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glfw" /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include" /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glew" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt enigma.cpp main.cpp wrapper_glfw.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glfw" /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include" /I"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\include\glew" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp wrapper_glfw.cpp
          wrapper_glfw.cpp
      1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(200): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
      1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\wrapper_glfw.cpp(239): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
@@ -36,9 +36,6 @@
      1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\main.cpp(1599): warning C4101: 'e' : unreferenced local variable
          GLM: perspective function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
          GLM: rotate function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
-         enigma.cpp
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\enigma.cpp(116): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\-majed\documents\visual studio 2013\projects\enigma\enigma\enigma.cpp(135): warning C4018: '<' : signed/unsigned mismatch
          Generating Code...
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glfw" /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib\glew" /LIBPATH:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Enigma\..\lib" opengl32.lib imm32.lib glfw3.lib glew32s.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\-Majed\Documents\Visual Studio 2013\Projects\Enigma\Debug\Enigma.lib" /MACHINE:X86 Debug\Enigma.res
@@ -72,4 +69,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:04.88
+Time Elapsed 00:00:07.13

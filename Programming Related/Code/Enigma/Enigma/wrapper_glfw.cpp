@@ -62,6 +62,7 @@ GLWrapper::GLWrapper(int width, int height, char *title) {
 	glfwOpenWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #endif
 
+
 	window = glfwCreateWindow(width, height, title, NULL, NULL);
 	const GLFWvidmode* vmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
@@ -219,6 +220,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				{
 					resized = false;
 				}
+
 				if (!resized)
 				{
 					width = 800;
@@ -316,10 +318,12 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 				ImGui::PushItemWidth(width - 25);
 				ImGui::Text("Plain Text");
+
 				struct TextFilters {
 					static int FilterAZ(ImGuiTextEditCallbackData* data)
 					{
 						ImWchar c = data->EventChar;
+
 						if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
 						{
 							return 1;
@@ -334,13 +338,24 @@ int GLWrapper::eventLoop(bool mousePressed[])
 						return 0;
 					}
 				};
-
+				
+				
 				if (ImGui::GetWindowIsFocused() && !ImGui::IsAnyItemActive())
 					ImGui::SetKeyboardFocusHere();
 
-				ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
-
-
+				ImGui::InputText("", strPlain, IM_ARRAYSIZE(strPlain), ImGuiInputTextFlags_CallbackAlways|ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
+				
+				if (strlen(strPlain) > 0 && calculated == false)
+				{
+					encrypted = "";
+					setRotorOne(getStaticrOne());
+					for (int i = 0; i < strlen(strPlain); i++)
+					{
+						Encrypt(strPlain[i]);
+					}
+					calculated = true;
+				}
+				
 				ImGui::Text("Cipher Text");
 
 				style.ItemInnerSpacing.x = 10.f;
@@ -351,7 +366,6 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::PopItemWidth();
 
 				//FIX BACKSPACE
-				
 				if (strlen(strPlain) <= encrypted.length())
 				{
 					if (strlen(strPlain) > 0)
@@ -359,6 +373,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 						if ((encrypted.length() != strlen(strPlain)))
 						{
 							encrypted.pop_back();
+							
 						}
 					}
 
@@ -370,6 +385,10 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				}
 				complete = false;
 
+				if (strlen(strPlain) < 1)
+				{
+					setRotorOne(getStaticrOne());
+				}
 
 				ImGui::End();
 			}
@@ -490,6 +509,17 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::InputText(" ", strCipher, IM_ARRAYSIZE(strCipher), ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterAZ);
 				ImGui::PopItemWidth();
 
+				if (strlen(strCipher) > 0 && calculated == false)
+				{
+					decrypted = "";
+					setRotorOne(getStaticrOne());
+					for (int i = 0; i < strlen(strCipher); i++)
+					{
+						Decrypt(strCipher[i]);
+					}
+					calculated = true;
+				}
+
 				//FIX BACKSPACE
 				if (strlen(strCipher) <= decrypted.length())
 				{
@@ -507,6 +537,11 @@ int GLWrapper::eventLoop(bool mousePressed[])
 					}
 				}
 				complete = false;
+
+				if (strlen(strCipher) < 1)
+				{
+					setRotorOne(getStaticrOne());
+				}
 
 				ImGui::End();
 			}
@@ -555,7 +590,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::Spacing();
 
-			ImGui::TextWrapped("Once a letter pressed, it is passed to the pins which then map to the corresponding pins, depending on the rotor setting. Once passed through the pins, it is then passed to the reflector where it will be mapped to the reflector and passed back to the pins. Once passed back to the pins, the decrypted letter can then be calculate. ");
+			ImGui::TextWrapped("Once a letter pressed, it is passed to the pins which then maps to the corresponding pins, depending on the rotor setting. Once passed through the pins, it is then passed to the reflector where it will be mapped to the reflector and passed back to the pins. Once passed back to the pins, the decrypted letter can then be calculated. ");
 
 			ImGui::Spacing();
 
@@ -563,11 +598,11 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::Spacing();
 
-			ImGui::TextWrapped("The rotor automatically rotates once you press a letter by click, and also reverse upon backspace. Please note that the rotor does take a few seconds to rotate each click therefore if many letters are entered in a short amount of time, there may be a delay in the rotor completing its rotation. For optimal experience it is recommended to take your time.");
+			ImGui::TextWrapped("The rotor automatically rotates once you press a letter, by one notch, and also reverses upon backspace. Please note that the rotor does take a few seconds to rotate each click therefore if many letters are entered in a short amount of time, there may be a delay in the rotor completing its rotation. For optimal experience it is recommended to take your time.");
 
 			ImGui::Spacing();
 
-			ImGui::TextWrapped("Cut, Copy and Paste are NOT facilitated");
+			ImGui::TextWrapped("You may copy or cut but paste is NOT facilitated");
 
 			ImGui::Spacing();
 
@@ -661,6 +696,10 @@ int GLWrapper::eventLoop(bool mousePressed[])
 	return 0;
 }
 
+void GLWrapper::setPos(int i)
+{
+	cursorpos = i;
+}
 /* Register an error callback function */
 void GLWrapper::setErrorCallback(void(*func)(int error, const char* description))
 {
@@ -1021,6 +1060,7 @@ void GLWrapper::reset()
 	
 	complete = true;
 	resized = false;
+	calculated = false;
 	show_rotor = false;
 	transition_current = 0.0f;
 	transition_limit = height - 175.0f;
