@@ -52,9 +52,7 @@ public:
 
 	enigma machine;
 	
-	int cursorpos;
-	void setPos(int i);
-
+	
 	bool calculated;
 	bool show_rotor, show_help;
 	bool transition_done;

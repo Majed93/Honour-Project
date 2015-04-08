@@ -351,11 +351,12 @@ void displayHelp()
 	glUniform1ui(textmodeID, textmode);
 
 }
-//Paste. Disabled due to bug
+
+
+//Paste
 static const char* ImImpl_GetClipboardTextFn()
 {
-	//return glfwGetClipboardString(glw->window);//ERROR ON PASTE?
-	return NULL;
+	return glfwGetClipboardString(glw->window);
 }
 
 //Copy
@@ -376,12 +377,6 @@ static void reshape(GLFWwindow* window, int w, int h)
 /* change camera, and callback on encrypt and decrypt methods on key press */
 static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 {
-	//if (action != GLFW_PRESS) return;
-
-	/*if (k == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-*/
-	
 	//64 and 90 are all alphabet values
 	//WHILE HELP MENUS ARE NOT ACTIVE
 	if (glw->show_rotor == false || glw->show_help == false)
@@ -389,7 +384,6 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 
 		if (k > 64 && k < 91 && action == GLFW_PRESS && strlen(glw->strPlain) < 95)
 		{
-			//std::cout << "letter code :" << k << std::endl;
 			if (glw->mode == "En")
 			{
 				glw->Encrypt((char)k);
@@ -835,8 +829,7 @@ void drawObjects()
 
 	back_contact.drawObject();
 
-	//glUseProgram(program[2]);
-
+	
 	//
 	lightpos = view *  glm::vec4(0.7f, 2.95f, -5.5f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
@@ -1660,8 +1653,8 @@ void InitImGui()
 	io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
 
 	io.RenderDrawListsFn = ImImpl_RenderDrawLists;
-	//io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;
-	//io.GetClipboardTextFn = ImImpl_GetClipboardTextFn;
+	io.SetClipboardTextFn = ImImpl_SetClipboardTextFn;
+	io.GetClipboardTextFn = ImImpl_GetClipboardTextFn;
 
 	LoadFontsTexture();
 }
@@ -1691,8 +1684,8 @@ void drawBuffers()
 }
 
 //Main Application Code
-int main(int argc, char ** argv) //SHOWS CONSOLE
-//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
+//int main(int argc, char ** argv) //SHOWS CONSOLE
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int cmdShow) //NO CONSOLE
 {
 	glw->setKeyCallback(keyCallback);
 	glw->setReshapeCallback(reshape);

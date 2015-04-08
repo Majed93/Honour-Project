@@ -139,7 +139,9 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		static bool help_notitlebar = false;
 		static bool help_nomove = false;
 		static bool help_noscrollbar = false;
-		
+
+		static bool copy = false;
+
 		static bool rotorhelp_nomove = false;
 		static bool rotorhelp_noscrollbar = false;
 
@@ -237,8 +239,8 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				//no_titlebar = false;
 				title = "Graphical Enigma Simulator - Encrypt";
 
-				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transition_current), 0);
-				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
+				ImGui::SetWindowPos(ImVec2(0, (height * 0.71f) + transition_current), 0);
+				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.71f)), 0);
 				if (show_rotor == true)
 				{
 					transition_current += trans_inc;
@@ -277,6 +279,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::SameLine();
 				show_help ^= ImGui::Button("Help");
 
+				
 				ImGui::Text("Rotor #");
 
 				ImGui::SameLine();
@@ -335,6 +338,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 								data->EventChar += 'A' - 'a';
 							}
 						}
+						
 						return 0;
 					}
 				};
@@ -348,6 +352,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				if (strlen(strPlain) > 0 && calculated == false)
 				{
 					encrypted = "";
+					count = 0;
 					setRotorOne(getStaticrOne());
 					for (int i = 0; i < strlen(strPlain); i++)
 					{
@@ -356,9 +361,21 @@ int GLWrapper::eventLoop(bool mousePressed[])
 					calculated = true;
 				}
 				
-				ImGui::Text("Cipher Text");
+				if (strlen(strPlain) < 1)
+				{
+					for (int i = 0; i < 26; i++)
+					{
+						changed[i] = false;
+						platechange[i] = false;
+					}
+						setRotorOne(getStaticrOne());
+				}
 
-				style.ItemInnerSpacing.x = 10.f;
+				ImGui::Text("Cipher Text");
+				ImGui::SameLine();
+				copy ^= ImGui::Button("Copy");
+				
+				style.ItemInnerSpacing.x = 100.f;
 				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transition_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transition_current), 0xff808080);
 				ImGui::Text(encrypted.c_str());
 
@@ -385,11 +402,23 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				}
 				complete = false;
 
-				if (strlen(strPlain) < 1)
+				//Copy
+				if (copy == true && strlen(strPlain) < 1)
 				{
-					setRotorOne(getStaticrOne());
+					ImGui::PushStyleColor(ImGuiCol_TooltipBg, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 0.9f)));
+					ImGui::BeginTooltip();
+					ImGui::SetTooltip("Please enter text before copying.");
+					ImGui::EndTooltip();
+					ImGui::PopStyleColor();
 				}
 
+				if (copy == true && strlen(strPlain) > 0)
+				{
+					const char * c = encrypted.c_str();
+					io.SetClipboardTextFn(c);
+					copy = false;
+				}
+				
 				ImGui::End();
 			}
 
@@ -418,8 +447,8 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::Begin("", &show_decrypt, ImVec2(100, 100), fill_alpha, layout_flags);
 				title = "Graphical Enigma Simulator - Decrypt";
 
-				ImGui::SetWindowPos(ImVec2(0, (height * 0.72f) + transition_current), 0);
-				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.72f)), 0);
+				ImGui::SetWindowPos(ImVec2(0, (height * 0.71f) + transition_current), 0);
+				ImGui::SetWindowSize(ImVec2(width, height - (height * 0.71f)), 0);
 				if (show_rotor == true)
 				{
 					transition_current += trans_inc;
@@ -475,8 +504,10 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 				ImGui::PushItemWidth(width - 25);
 				ImGui::Text("Plain Text");
+				ImGui::SameLine();
+				copy ^= ImGui::Button("Copy");
 
-				style.ItemInnerSpacing.x = 10.f;
+				style.ItemInnerSpacing.x = 100.f;
 				ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(wrap_width + width, 10.0f + transition_current), ImVec2(wrap_width + width, ImGui::GetTextLineHeight() + transition_current), 0xff808080);
 				ImGui::Text(decrypted.c_str());
 
@@ -512,12 +543,23 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				if (strlen(strCipher) > 0 && calculated == false)
 				{
 					decrypted = "";
+					count = 0;
 					setRotorOne(getStaticrOne());
 					for (int i = 0; i < strlen(strCipher); i++)
 					{
 						Decrypt(strCipher[i]);
 					}
 					calculated = true;
+				}
+
+				if (strlen(strCipher) < 1)
+				{
+					for (int i = 0; i < 26; i++)
+					{
+						changed[i] = false;
+						platechange[i] = false;
+					}
+					setRotorOne(getStaticrOne());
 				}
 
 				//FIX BACKSPACE
@@ -538,9 +580,21 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				}
 				complete = false;
 
-				if (strlen(strCipher) < 1)
+				//Copy
+				if (copy == true && strlen(strCipher) < 1)
 				{
-					setRotorOne(getStaticrOne());
+					ImGui::PushStyleColor(ImGuiCol_TooltipBg, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 0.9f)));
+					ImGui::BeginTooltip();
+					ImGui::SetTooltip("Please enter text before copying.");
+					ImGui::EndTooltip();
+					ImGui::PopStyleColor();
+				}
+
+				if (copy == true && strlen(strCipher) > 0)
+				{
+					const char * c = decrypted.c_str();
+					io.SetClipboardTextFn(c);
+					copy = false;
 				}
 
 				ImGui::End();
@@ -602,11 +656,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 			ImGui::Spacing();
 
-			ImGui::TextWrapped("You may copy or cut but paste is NOT facilitated");
-
-			ImGui::Spacing();
-
-			ImGui::TextWrapped("DO NOT HOLD LETTERS DOWN AS THE ROTOR CAN ONLY DO ONE LETTER AT A TIME. ESPECIALLY THE BACKSPACE KEY AS THIS WILL RESULT IN THE OUTPUT TEXT BEING INCORRECT!");
+			ImGui::TextWrapped("DO NOT HOLD LETTERS DOWN AS THE ROTOR CAN ONLY DO ONE LETTER AT A TIME.");
 
 			ImGui::Spacing();
 
@@ -674,6 +724,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 		}
 
+		
 		//TO ENSURE THE FUNCTIONS COME BACK
 		if (show_help == false)
 		{
@@ -696,10 +747,6 @@ int GLWrapper::eventLoop(bool mousePressed[])
 	return 0;
 }
 
-void GLWrapper::setPos(int i)
-{
-	cursorpos = i;
-}
 /* Register an error callback function */
 void GLWrapper::setErrorCallback(void(*func)(int error, const char* description))
 {
@@ -954,10 +1001,6 @@ void GLWrapper::setRelfector(std::string str)
 //Encryption occurs here
 void GLWrapper::Encrypt(char k)
 {
-	//std::cout << "letter index:" << machine.getIndex(k) << std::endl;
-	//std::cout << "cipher letter:" << getCiphered(machine.getIndex(k)) << std::endl;
-	//getCiphered(machine.getIndex(k));
-
 	int index = machine.getIndex(k);
 
 	for (int i = 0; i < 26; i++)
@@ -979,6 +1022,7 @@ void GLWrapper::Encrypt(char k)
 	encrypted += machine.encrypt(index);
 	machine.offset(1);
 	count += 1;
+	calculated = false;
 }
 
 //Decryption
@@ -1007,6 +1051,7 @@ void GLWrapper::Decrypt(char k)
 	decrypted += machine.decrypt(index, k);
 	machine.offset(1);
 	count += 1;
+	calculated = false;
 }
 
 //Reset variables
