@@ -1,1 +1,1 @@
-You WILL  requre OpenGL 4 or greater to run this application along with 
+You WILL  requre OpenGL 4 or greater to run this application and Visual Studio installed. 
