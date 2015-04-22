@@ -131,6 +131,9 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		static bool show_encrypt = false;
 		static bool show_decrypt = false;
 		static bool show_exit = false;
+		static bool show_confirm = false;
+		static bool confirm_no = false;
+		static bool confirm_yes = false;
 		static bool no_titlebar = true;
 		static bool no_border = true;
 		static bool no_resize = true;
@@ -166,14 +169,16 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		if (show_rotor == false)
 		{
 			transition_done = false;
-			//transistion_current = 0.0f;
 			if (transition_current >= 0.0f)
 			{
 				transition_current -= trans_inc;
 			}
 		}
+
+		/***************************************************************************************************************/
+
 		//Main Menu
-		if (show_main == true)
+		if (show_main == true && show_confirm == false)
 		{
 			//system("CLS");//CLEARS CONSOLE *****************TAKE THIS OUT WHEN NOT DEBUGGING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			if (!resized)
@@ -185,6 +190,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
 				resized = true;
 			}
+			//CENTERS BUTTONS
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2((width / 2) - 50 - style.WindowPadding.x, (height / 4) + style.WindowPadding.y));
 
 			mode = "";
@@ -212,6 +218,8 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			ImGui::PopStyleVar();
 
 		}
+
+		/***************************************************************************************************************/
 
 		if (transition_done == false)
 		{
@@ -423,6 +431,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			}
 
 			/***************************************************************************************************************/
+			
 			//Show Decryption screen
 			if (show_decrypt == true)
 			{
@@ -601,6 +610,8 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			}
 
 		}
+		
+		/***************************************************************************************************************/
 		//Help Screen
 		if (show_help == true)
 		{
@@ -695,11 +706,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 		}
 
-		//Exit Application
-		if(show_exit == true){
-			glfwSetWindowShouldClose(window, GL_TRUE);
-		}
-
+		/***************************************************************************************************************/
 		if (show_rotor == true)
 		{
 			//std::cout << transistion_current << std::endl;
@@ -731,6 +738,47 @@ int GLWrapper::eventLoop(bool mousePressed[])
 			show_rotor = false;
 		}
 
+		//Exit Application
+		if (show_exit == true){
+			show_confirm = true;
+		}
+
+		/***************************************************************************************************************/
+
+		if (show_confirm == true)
+		{
+			ImGui::PushStyleColor(ImGuiCol_TitleBg, ImColor::ImColor(ImVec4(0.15f, 0.15f, 0.15f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButton, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImColor::ImColor(ImVec4(0.4f, 0.4f, 0.4f, 1.0f)));
+			ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImColor::ImColor(ImVec4(0.1f, 0.1f, 0.1f, 1.0f)));
+			
+			ImGui::Begin("Exit?", &show_help, ImVec2(300, 250), 0.95f, help_flags);
+
+			ImGui::SetWindowPos(ImVec2((width / 2) - 100, (height / 2) - 75), 0);
+			ImGui::SetWindowSize(ImVec2(275, 75), 0);
+			//CENTERS BUTTONS
+			
+			ImGui::Text("Are you sure you wish to Exit?");
+
+			confirm_yes ^= ImGui::Button("Yes", ImVec2(50, 20));// , ImVec2(60, 20), true);
+			ImGui::SameLine();
+			confirm_no ^= ImGui::Button("No", ImVec2(50, 20));
+			
+			ImGui::End();
+			ImGui::PopStyleColor(4);
+		}
+
+		if (confirm_yes == true)
+		{
+			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+
+		if (confirm_no == true)
+		{
+			show_exit = false;
+			show_confirm = false;
+			confirm_no = false;
+		}
 
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar();

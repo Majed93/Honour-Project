@@ -1612,7 +1612,7 @@ void LoadFontsTexture()
 	//ImFont* my_font4 = io.Fonts->AddFontFromFileTTF("extra_fonts/ProggyTiny.ttf", 10.0f); my_font4->DisplayOffset.y += 1;
 	//ImFont* my_font5 = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 20.0f, io.Fonts->GetGlyphRangesJapanese());
 
-	//io.Fonts->AddFontFromFileTTF("fonts/ProggyClean.ttf", 15.0f);
+	//io.Fonts->AddFontFromFileTTF("fonts/DroidSans.ttf", 15.0f);
 	
 	unsigned char* pixels;
 	int width, height;
