@@ -180,7 +180,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		//Main Menu
 		if (show_main == true && show_confirm == false)
 		{
-			//system("CLS");//CLEARS CONSOLE *****************TAKE THIS OUT WHEN NOT DEBUGGING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			//system("CLS");//CLEARS CONSOLE *****************TAKE THIS OUT WHEN NOT DEBUGGING NEVER IN RELEASE MODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			if (!resized)
 			{
 				width = 400;
@@ -190,6 +190,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				glfwSetWindowPos(window, vmode->width / 2 - width / 2, vmode->height / 2 - height / 2); //Centre screen
 				resized = true;
 			}
+
 			//CENTERS BUTTONS
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2((width / 2) - 50 - style.WindowPadding.x, (height / 4) + style.WindowPadding.y));
 
@@ -244,7 +245,6 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 				show_main = false;
 				ImGui::Begin("Encrypt", &show_encrypt, ImVec2(100, 100), fill_alpha, layout_flags);
-				//no_titlebar = false;
 				title = "Graphical Enigma Simulator - Encrypt";
 
 				ImGui::SetWindowPos(ImVec2(0, (height * 0.71f) + transition_current), 0);
@@ -330,6 +330,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				ImGui::PushItemWidth(width - 25);
 				ImGui::Text("Plain Text");
 
+				//FILTERS FOR ONLY CAPS LETTERS
 				struct TextFilters {
 					static int FilterAZ(ImGuiTextEditCallbackData* data)
 					{
@@ -411,6 +412,8 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				complete = false;
 
 				//Copy
+
+				//If no letters present show tooltip
 				if (copy == true && strlen(strPlain) < 1)
 				{
 					ImGui::PushStyleColor(ImGuiCol_TooltipBg, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 0.9f)));
@@ -524,6 +527,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 
 				ImGui::Text("Cipher Text");
 
+				//FILTERS FOR ONLY CAPS LETTERS
 				struct TextFilters {
 					static int FilterAZ(ImGuiTextEditCallbackData* data)
 					{
@@ -590,6 +594,8 @@ int GLWrapper::eventLoop(bool mousePressed[])
 				complete = false;
 
 				//Copy
+
+				//If no letter present
 				if (copy == true && strlen(strCipher) < 1)
 				{
 					ImGui::PushStyleColor(ImGuiCol_TooltipBg, ImColor::ImColor(ImVec4(0.2f, 0.2f, 0.2f, 0.9f)));
@@ -612,6 +618,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		}
 		
 		/***************************************************************************************************************/
+
 		//Help Screen
 		if (show_help == true)
 		{
@@ -707,6 +714,7 @@ int GLWrapper::eventLoop(bool mousePressed[])
 		}
 
 		/***************************************************************************************************************/
+
 		if (show_rotor == true)
 		{
 			//std::cout << transistion_current << std::endl;

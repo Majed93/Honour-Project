@@ -140,8 +140,10 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 	if (cmd_lists_count == 0)
 		return;
 
+	//Check if Encrypt or Decrypt mode
 	if (glw->mode == "En")
 	{
+		//Do once for efficiency.
 		if (done == false)
 		{
 			createBuffers();
@@ -150,12 +152,14 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 	}
 	else if (glw->mode == "De")
 	{
+		//Do once for efficiency.
 		if (done == false)
 		{
 			createBuffers();
 		}
 		display();
 	}
+
 	// Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
@@ -163,8 +167,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_SCISSOR_TEST);
-
-	 glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
 
     // Setup orthographic projection matrix
     const float width = ImGui::GetIO().DisplaySize.x;
@@ -176,6 +179,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
         { 0.0f,			0.0f,			-1.0f,		0.0f },
         { -1.0f,		1.0f,			0.0f,		1.0f },
     };
+
     glUseProgram(program[0]);
     glUniform1i(texture_location, 0);
     glUniformMatrix4fv(proj_mtx_location, 1, GL_FALSE, &ortho_projection[0][0]);
@@ -265,11 +269,8 @@ void display() {
 	view = glm::rotate(view, -angle_y, glm::vec3(0, 1, 0)); //rotating in clockwise direction around y-axis
 	view = glm::rotate(view, -angle_z, glm::vec3(0, 0, 1));
 
-
 	normalmatrix = glm::transpose(glm::inverse(glm::mat3(view * model)));
 	lightpos = view *  glm::vec4(lightx, lighty, lightz, 1.0);
-
-	
 
 	// Send our transformations to the currently bound shader,
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
@@ -277,8 +278,6 @@ void display() {
 	glUniformMatrix4fv(projectionID, 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix3fv(normalmatrixID, 1, GL_FALSE, &normalmatrix[0][0]);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
-
-
 	
 	drawObjects();
 
@@ -296,9 +295,9 @@ void display() {
 	glDisable(GL_BLEND);
 }
 
+/*DRAW OUR HELP GUIDE*/
 void displayHelp()
 {
-	/*DRAW OUR HELP GUIDE*/
 	//Make view front on
 	view = glm::lookAt(
 		glm::vec3(0, 0, 4),
@@ -349,9 +348,7 @@ void displayHelp()
 
 	textmode = 0;
 	glUniform1ui(textmodeID, textmode);
-
 }
-
 
 //Paste
 static const char* ImImpl_GetClipboardTextFn()
@@ -397,11 +394,10 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 		//Spacebar
 		else if (k == 32)
 		{
-
+			//MAYBE DO FOR A CHARACTER LIKE X AND 4 BLOCK TEXT
 		}
 
 		//Backspace
-		
 		if (k == 259 && action == GLFW_PRESS)
 		{
 			if ((glw->encrypted != "" || glw->decrypted != ""))
@@ -465,7 +461,6 @@ static void keyCallback(GLFWwindow* window, int k, int s, int action, int mods)
 		io.KeysDown[k] = false;
 	io.KeyCtrl = (mods & GLFW_MOD_CONTROL) != 0;
 	io.KeyShift = (mods & GLFW_MOD_SHIFT) != 0;
-
 }
 
 //Mouse callback
@@ -579,7 +574,7 @@ void drawObjects()
 	model = glm::translate(model, glm::vec3(x, y + 5.5f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
-	////////////////
+	////////////////NOTCHED RINGS
 	glm::vec4 lightpos = view *  glm::vec4(0.5f, 0.5f, 7.0f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
@@ -597,7 +592,7 @@ void drawObjects()
 	
 	notched_ring.drawObject();
 
-	////////////////
+	////////////////ALPHABET TYRE
 	lightpos = view *  glm::vec4(0.75f, 1.75f, 5.5f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
@@ -618,7 +613,7 @@ void drawObjects()
 	alphabet_tyre.drawObject();
 
 
-	//////////////////
+	////////////////// DRAW THE PINS
 	lightpos = view *  glm::vec4(1.75f, 2.5f, 3.5f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
@@ -647,14 +642,10 @@ void drawObjects()
 	model = glm::translate(model, glm::vec3(x, y + 0.45f, z));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
-	///* WIRES HERE */
+	/* WIRES HERE */
 
 	glBindVertexArray(vao);
 
-	//model = glm::scale(model, glm::vec3(scale, scale, scale));
-	//model = glm::rotate(model, 90.0f, glm::vec3(0, 0, 1)); //rotating in clockwise direction around x-axis
-	////
-	
 	for (int i = 0; i < 26; i++)
 	{
 		newnumplatez = 0.0f;
@@ -734,8 +725,6 @@ void drawObjects()
 		}
 	}
 
-	////
-
 	//
 	model = glm::mat4(1.0f);
 	model = glm::rotate(model, 90.0f, glm::vec3(1, 0, 0)); //rotating in clockwise direction around x-axis
@@ -755,6 +744,8 @@ void drawObjects()
 	}
 
 
+	//////////////SPRING-LOADED RING ADJUSTING LEVER
+
 	lightpos = view *  glm::vec4(0.3f, 2.5f, -0.5f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
@@ -767,7 +758,8 @@ void drawObjects()
 	
 	spring_loaded_lever.drawObject();
 
-	//
+
+	///////////HUB
 
 	lightpos = view *  glm::vec4(0.5f, 0.25f, 1.0f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
@@ -779,7 +771,9 @@ void drawObjects()
 
 	hub.drawObject();
 
-	//
+
+	///////////FINGER WHEEL
+
 	lightpos = view *  glm::vec4(0.75f, 2.05f, -1.5f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
@@ -790,7 +784,9 @@ void drawObjects()
 
 	finger_wheel.drawObject();
 
-	//
+
+	////////////////// RATCHET WHEEL
+
 	lightpos = view *  glm::vec4(0.1f, 0.7f, -3.3f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
@@ -816,7 +812,10 @@ void drawObjects()
 
 	ratchet_wheel.drawObject();
 
-	//
+
+
+	/////BACK CONTACT
+
 	float rot = float(360.0f / 26.0f) / 2.0f;
 
 	lightpos = view *  glm::vec4(0.1f, 0.9f, -4.8f, 1.0);
@@ -830,7 +829,8 @@ void drawObjects()
 	back_contact.drawObject();
 
 	
-	//
+	//////////REFLECTOR
+
 	lightpos = view *  glm::vec4(0.7f, 2.95f, -5.5f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
 
@@ -864,8 +864,7 @@ void drawObjects()
 	glUniform1ui(componentID, comp);
 
 	reflector.drawObject();
-	//glUseProgram(program[1]);
-
+	
 	//
 	lightpos = view *  glm::vec4(0.0f, 0.05f, -6.5f, 1.0);
 	glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
@@ -897,13 +896,8 @@ void drawObjects()
 		glw->introtation -= rotationinc;
 	}
 
-	//
-	//lightpos = view *  glm::vec4(lightx, lighty, lightz, 1.0);
-	//glUniform4fv(lightposID, 1, glm::value_ptr(lightpos));
-
 
 	model = glm::rotate(model, 180.0f, glm::vec3(0, 0, 1));
-	//model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
 	model = glm::translate(model, glm::vec3(x - 0.18f, y + 5.4f, z - 1.455f));
 
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
@@ -931,12 +925,10 @@ void drawObjects()
 		glw->introtation -= rotationinc;
 	}
 
-	//model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
 	model = glm::translate(model, glm::vec3(x - 0.2f, y + 1.f, z - 1.45f));
 	glUniformMatrix4fv(modelID, 1, GL_FALSE, &model[0][0]);
 
 		
-
 		for (int a = 0; a < 26; a++)
 		{
 			newcount = a;
